@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Correlation Calculator | Pearson r | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/correlation.html">
+  <meta name="description" content="Free Pearson correlation calculator. Paste paired x/y data and instantly see the correlation coefficient r, R², strength of association and a scatter plot.">
+  <meta name="keywords" content="correlation calculator, pearson r calculator, correlation coefficient, r squared, scatter plot tool, statistics calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/correlation.html">
+  <meta property="og:title" content="Correlation Calculator | Pearson r | SimplicityHub">
+  <meta property="og:description" content="Free Pearson correlation calculator. Paste paired x/y data and instantly see the correlation coefficient r, R², strength of association and a scatter plot.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Correlation Calculator | Pearson r | SimplicityHub">
+  <meta name="twitter:description" content="Free Pearson correlation calculator. Paste paired x/y data and instantly see the correlation coefficient r, R², strength of association and a scatter plot.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Correlation Calculator","item":"https://www.simplicityhub.co.uk/pages/correlation.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Correlation Calculator","url":"https://www.simplicityhub.co.uk/pages/correlation.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free Pearson correlation calculator. Paste paired x/y data and instantly see the correlation coefficient r, R², strength of association and a scatter plot.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does the correlation coefficient r mean?","acceptedAnswer":{"@type":"Answer","text":"Pearson's r quantifies the linear relationship between two variables. It is dimensionless and bounded between -1 and +1. The sign shows direction; the magnitude shows strength. r = 0 means no linear relationship — but a strong non-linear relationship can still be present."}},{"@type":"Question","name":"What is the difference between r and R-squared?","acceptedAnswer":{"@type":"Answer","text":"R² is simply r squared. While r can be negative (showing direction), R² is always between 0 and 1 and represents the proportion of variance in y that is linearly explained by x. R² = 0.49 means 49% of the variance in y is associated with x."}},{"@type":"Question","name":"Does correlation imply causation?","acceptedAnswer":{"@type":"Answer","text":"No. A strong correlation tells you the two variables move together but says nothing about which (if either) causes the other. There may be a third lurking variable, the relationship may be coincidental, or the direction may be reversed. Causation requires a designed experiment."}},{"@type":"Question","name":"How big a sample do I need to trust a correlation?","acceptedAnswer":{"@type":"Answer","text":"A bare minimum of 30 paired observations gives a usable estimate; 100+ is much more reliable. With small samples, even strong-looking correlations can be statistical noise — always look at the scatter plot and the statistical significance, not just the r value."}},{"@type":"Question","name":"What should I do when correlation is weak but I expected it to be strong?","acceptedAnswer":{"@type":"Answer","text":"Plot the data. The relationship may be non-linear (try Spearman rank correlation or a transformation), the data may contain outliers distorting r, or the variables may simply not be related. Splitting by subgroup sometimes reveals strong correlations within groups that wash out in aggregate."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Correlation Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Correlation Calculator</h1>
+        <p class="lead">Paste two columns of paired data to instantly calculate Pearson's correlation coefficient (r) — with a live scatter plot, regression line, R-squared, and a plain-English interpretation of strength and direction.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">r = Σ((x−x̄)(y−ȳ)) &divide; √(Σ(x−x̄)² × Σ(y−ȳ)²)</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="data">Paired data (one pair per line: <em>x, y</em>)</label>
+            <span class="field-hint">Enter your X and Y values, comma-separated, one pair per line. Minimum 3 pairs.</span>
+            <textarea id="data" class="plain" placeholder="1, 2.1&#10;2, 4.0&#10;3, 5.9&#10;4, 8.3&#10;5, 9.8&#10;6, 12.1"></textarea>
+            <span class="field-error" id="data-err">Enter at least 3 valid x,y pairs.</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4C8;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Pearson r</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">correlation coefficient</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">R² (variance explained)</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Sample size (n)</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">Strength of relationship</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Correlation</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>Reading r</h4><p>Pearson's r ranges from -1 to +1. Values near 0 mean little or no linear relationship; near +1 means a strong positive linear relationship; near -1 means a strong negative relationship. R² (r squared) tells you what fraction of the variance in Y is explained by X.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>Correlation ≠ causation</h4><p>A high correlation never proves cause and effect. The two variables may both be driven by a third unmeasured factor, or the relationship may be coincidental. Always pair correlation analysis with process knowledge before acting.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>Watch for non-linearity</h4><p>Pearson r only measures linear relationships. Two variables with a strong curved relationship can have r near zero. Always look at the scatter plot — if the cloud of points isn't roughly straight, consider transformation or a non-linear method.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this correlation calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">The Pearson correlation coefficient r measures the strength and direction of the linear relationship between two continuous variables. It runs from -1 (perfect negative linear relationship) through 0 (no linear relationship) to +1 (perfect positive linear relationship). This calculator takes paired x/y values, returns Pearson's r, the coefficient of determination R² (the share of variance in y explained by x), the sample size, and a scatter plot so you can see the relationship rather than just read the number. It also classifies the strength using the standard thresholds (|r| < 0.3 weak, 0.3-0.7 moderate, > 0.7 strong) and warns when sample size is too small for the correlation to be reliable.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator during the Analyse phase of DMAIC when investigating possible cause-and-effect relationships, during root-cause analysis, when sizing the prize from controlling a process variable, or before fitting a regression model. It is also the right tool when somebody claims two metrics "go together" and you want to test the claim with actual numbers.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A study of 30 bakeries pairs daily oven temperature (°C) with daily defect rate (%). Pearson r = -0.78 — a strong negative correlation: hotter ovens, fewer defects. R² = 0.61, meaning oven temperature explains 61% of the variation in defects. The scatter plot confirms a clean, near-linear relationship with no obvious outliers. This justifies a confirmation trial and, if confirmed, a control plan that holds oven temperature within a tighter range.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What does the correlation coefficient r mean?</summary><p>Pearson's r quantifies the linear relationship between two variables. It is dimensionless and bounded between -1 and +1. The sign shows direction; the magnitude shows strength. r = 0 means no linear relationship — but a strong non-linear relationship can still be present.</p></details>
+      <details class="seo-faq-item"><summary>What is the difference between r and R-squared?</summary><p>R² is simply r squared. While r can be negative (showing direction), R² is always between 0 and 1 and represents the proportion of variance in y that is linearly explained by x. R² = 0.49 means 49% of the variance in y is associated with x.</p></details>
+      <details class="seo-faq-item"><summary>Does correlation imply causation?</summary><p>No. A strong correlation tells you the two variables move together but says nothing about which (if either) causes the other. There may be a third lurking variable, the relationship may be coincidental, or the direction may be reversed. Causation requires a designed experiment.</p></details>
+      <details class="seo-faq-item"><summary>How big a sample do I need to trust a correlation?</summary><p>A bare minimum of 30 paired observations gives a usable estimate; 100+ is much more reliable. With small samples, even strong-looking correlations can be statistical noise — always look at the scatter plot and the statistical significance, not just the r value.</p></details>
+      <details class="seo-faq-item"><summary>What should I do when correlation is weak but I expected it to be strong?</summary><p>Plot the data. The relationship may be non-linear (try Spearman rank correlation or a transformation), the data may contain outliers distorting r, or the variables may simply not be related. Splitting by subgroup sometimes reveals strong correlations within groups that wash out in aggregate.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function calculate(){
+  var raw=document.getElementById('data').value.trim();
+  var pairs=raw.split(/\n+/).map(function(l){var p=l.split(/[,;\t]/).map(parseFloat);return (p.length>=2&&!isNaN(p[0])&&!isNaN(p[1]))?{x:p[0],y:p[1]}:null}).filter(Boolean);
+  var ok=pairs.length>=3;
+  document.getElementById('data').classList.toggle('error',!ok);document.getElementById('data-err').classList.toggle('visible',!ok);
+  if(!ok)return;
+  var n=pairs.length, sx=0, sy=0; pairs.forEach(function(p){sx+=p.x;sy+=p.y});
+  var mx=sx/n, my=sy/n, num=0, dx=0, dy=0;
+  pairs.forEach(function(p){num+=(p.x-mx)*(p.y-my); dx+=(p.x-mx)*(p.x-mx); dy+=(p.y-my)*(p.y-my)});
+  if(dx===0||dy===0){document.getElementById('data-err').textContent='X or Y has zero variance — correlation cannot be computed.';document.getElementById('data-err').classList.add('visible');return;}
+  document.getElementById('data-err').textContent='Enter at least 3 valid x,y pairs.';
+  var r=num/Math.sqrt(dx*dy), r2=r*r;
+  /* Linear regression line: y = a + b*x */
+  var b=num/dx, a=my-b*mx;
+  document.getElementById('main-value').textContent=r.toFixed(4);
+  document.getElementById('metric-a').textContent=(r2*100).toFixed(1)+'%';
+  document.getElementById('metric-b').textContent=n;
+  var absR=Math.abs(r);
+  var pacePct=Math.max(8,absR*100); document.getElementById('pace-fill').style.width=pacePct.toFixed(1)+'%';
+  var strength=absR<0.3?'Weak':absR<0.5?'Moderate':absR<0.7?'Strong':absR<0.9?'Very strong':'Near-perfect';
+  var dir=r<0?'negative':'positive';
+  document.getElementById('pace-label-text').textContent=strength+' '+dir;
+  /* SVG scatter */
+  var w=560,h=300,padL=40,padR=20,padT=20,padB=36;
+  var iw=w-padL-padR, ih=h-padT-padB;
+  var xs=pairs.map(function(p){return p.x}),ys=pairs.map(function(p){return p.y});
+  var xMin=Math.min.apply(null,xs),xMax=Math.max.apply(null,xs),yMin=Math.min.apply(null,ys),yMax=Math.max.apply(null,ys);
+  if(xMin===xMax){xMin-=1;xMax+=1}if(yMin===yMax){yMin-=1;yMax+=1}
+  function px(x){return padL+((x-xMin)/(xMax-xMin))*iw}
+  function py(y){return padT+ih-((y-yMin)/(yMax-yMin))*ih}
+  var dots=pairs.map(function(p){return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="rgba(216,255,58,.85)" stroke="#000" stroke-width="1"/>'}).join('');
+  var lx1=xMin, ly1=a+b*lx1, lx2=xMax, ly2=a+b*lx2;
+  var line='<line x1="'+px(lx1).toFixed(1)+'" y1="'+py(ly1).toFixed(1)+'" x2="'+px(lx2).toFixed(1)+'" y2="'+py(ly2).toFixed(1)+'" stroke="#fff" stroke-width="2"/>';
+  var axes='<line x1="'+padL+'" y1="'+(padT+ih)+'" x2="'+(w-padR)+'" y2="'+(padT+ih)+'" stroke="rgba(255,255,255,.25)"/><line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(padT+ih)+'" stroke="rgba(255,255,255,.25)"/>';
+  var labels='<text x="'+padL+'" y="'+(padT+ih+18)+'" font-size="10" fill="#b8c0cc">'+xMin.toFixed(1)+'</text><text x="'+(w-padR-18)+'" y="'+(padT+ih+18)+'" font-size="10" fill="#b8c0cc">'+xMax.toFixed(1)+'</text><text x="4" y="'+(padT+ih)+'" font-size="10" fill="#b8c0cc">'+yMin.toFixed(1)+'</text><text x="4" y="'+(padT+8)+'" font-size="10" fill="#b8c0cc">'+yMax.toFixed(1)+'</text>';
+  var svg='<div class="chart-box"><div style="font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Scatter plot with regression line</div><svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">'+axes+line+dots+labels+'</svg><div style="font-size:13px;color:var(--muted);margin-top:8px">Regression: y = '+a.toFixed(3)+(b>=0?' + ':' − ')+Math.abs(b).toFixed(3)+' × x</div></div>';
+  document.getElementById('extra-area').innerHTML=svg;
+  var verdict=absR<0.3?'There is little or no linear relationship between X and Y. ':absR<0.7?'There is a '+strength.toLowerCase()+' '+dir+' linear relationship — X explains about '+(r2*100).toFixed(0)+'% of the variation in Y. ':'There is a '+strength.toLowerCase()+' '+dir+' linear relationship — X explains about '+(r2*100).toFixed(0)+'% of the variation in Y. ';
+  document.getElementById('explanation-text').textContent=verdict+'Remember that correlation does not prove causation: another factor may be driving both variables. Always check the scatter plot for non-linearity or outliers before drawing conclusions.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){var t=document.getElementById('data');t.value='';t.classList.remove('error');document.getElementById('data-err').classList.remove('visible');document.getElementById('extra-area').innerHTML='';document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>

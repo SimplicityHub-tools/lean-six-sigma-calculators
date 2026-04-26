@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Box Plot Calculator | 5-Number Summary & Outliers | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7; --muted:#b8c0cc; --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a; --shadow:0 20px 50px rgba(0,0,0,.35); --max:1240px;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at left 30%,rgba(216,255,58,.08),transparent 24%),
+    linear-gradient(180deg,#05070b 0%,#07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}
+
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative} nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;transition:width .25s}
+  nav a:hover::after,nav a.active::after{width:100%} nav a.active{color:var(--accent)}
+
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)} .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:13px;font-weight:700;color:var(--accent);font-family:monospace;letter-spacing:.02em;line-height:2.1}
+
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .panel-sub{font-size:14px;color:var(--muted);margin:0 0 24px}
+
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field textarea{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;resize:vertical;min-height:140px;line-height:1.6}
+  .field textarea::placeholder{color:#4d5766}
+  .field textarea:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field textarea.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .field input[type=text]{width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:12px 16px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
+  .field input[type=text]:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input[type=text]::placeholder{color:#4d5766}
+
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* Results */
+  .empty-state{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;padding:36px;border-bottom:none}
+  .result-label{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+
+  /* Five-number summary */
+  .five-num{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+  .fn-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:16px 12px;text-align:center}
+  .fn-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .fn-value{font-size:clamp(16px,2.5vw,22px);font-weight:900;letter-spacing:-.02em}
+  .fn-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+
+  /* Stats grid */
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:0}
+  .stat-box{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center}
+  .stat-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .stat-value{font-size:18px;font-weight:900;letter-spacing:-.02em}
+
+  /* Outlier badges */
+  .outlier-section{margin-top:14px;display:none}
+  .outlier-section.visible{display:block}
+  .outlier-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .outlier-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .outlier-chip{padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;background:rgba(255,140,66,.12);color:#ff8c42;border:1px solid rgba(255,140,66,.3)}
+
+  /* Skewness badge */
+  .skew-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;margin-top:14px}
+  .skew-label{font-size:14px;color:var(--muted);font-weight:600}
+  .skew-value{font-weight:800;font-size:15px;margin-left:auto}
+  .skew-badge{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:18px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* Box plot chart area */
+  .charts-section{display:none;margin-top:28px;display:none}
+  .charts-section.visible{display:grid;grid-template-columns:1fr;gap:24px}
+  .chart-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top right,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .chart-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px}
+  .chart-title{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:14px;color:var(--muted)}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted)}
+
+  /* Box plot canvas */
+  .boxplot-wrap{position:relative;width:100%;height:220px}
+  #boxplot-canvas{width:100%;height:100%}
+
+  /* Histogram */
+  .hist-wrap{position:relative;width:100%;height:240px}
+
+  /* Improvement */
+  .improve-section{display:none;padding:0 0 48px}
+  .improve-section.visible{display:block}
+  .improve-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at bottom left,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+  .rec-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+  .rec-head{font-size:15px;font-weight:800;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* How it works */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a} .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg,#05070b 0%,#07101d 100%);color:#b8c0cc;font-size:17px;font-family:inherit}
+
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.five-num,.stats-grid,.rec-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr} .formula-badge{display:none}
+    .five-num{grid-template-columns:repeat(3,1fr)}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center} nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max),calc(100% - 28px))}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/boxplot.html">
+  <meta name="description" content="Free box plot calculator. Paste raw values and instantly see the 5-number summary, IQR, whiskers, outliers (1.5×IQR rule) and a clean box-and-whisker chart.">
+  <meta name="keywords" content="box plot calculator, box and whisker calculator, 5-number summary, IQR outlier rule, quartile calculator, statistics calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/boxplot.html">
+  <meta property="og:title" content="Box Plot Calculator | 5-Number Summary & Outliers | SimplicityHub">
+  <meta property="og:description" content="Free box plot calculator. Paste raw values and instantly see the 5-number summary, IQR, whiskers, outliers (1.5×IQR rule) and a clean box-and-whisker chart.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Box Plot Calculator | 5-Number Summary & Outliers | SimplicityHub">
+  <meta name="twitter:description" content="Free box plot calculator. Paste raw values and instantly see the 5-number summary, IQR, whiskers, outliers (1.5×IQR rule) and a clean box-and-whisker chart.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Box Plot Calculator","item":"https://www.simplicityhub.co.uk/pages/boxplot.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Box Plot Calculator","url":"https://www.simplicityhub.co.uk/pages/boxplot.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free box plot calculator. Paste raw values and instantly see the 5-number summary, IQR, whiskers, outliers (1.5×IQR rule) and a clean box-and-whisker chart.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the 1.5×IQR outlier rule?","acceptedAnswer":{"@type":"Answer","text":"Any value below Q1 - 1.5×IQR or above Q3 + 1.5×IQR is flagged as a potential outlier. The factor 1.5 was chosen by Tukey to flag roughly 0.7% of values from a normal distribution — a useful first filter, not a hard rule. Some applications use 3×IQR for \"extreme\" outliers."}},{"@type":"Question","name":"What does a box plot show that summary statistics cannot?","acceptedAnswer":{"@type":"Answer","text":"Skew (asymmetry of the box around the median, or asymmetric whisker length), tail behaviour (whisker length and outliers), and direct visual comparison between groups. A mean and SD can be identical for very different distributions — the box plot exposes the difference instantly."}},{"@type":"Question","name":"How is a box plot different from a histogram?","acceptedAnswer":{"@type":"Answer","text":"A histogram shows the full shape of the distribution but needs more data to be meaningful (50+ values). A box plot summarises the shape into five numbers and works well even on small samples (10-30 values). Use box plots to compare groups; use histograms to inspect a single distribution in detail."}},{"@type":"Question","name":"Should I always remove flagged outliers?","acceptedAnswer":{"@type":"Answer","text":"No. Investigate them first. If the outlier is a measurement error, transcription error or known special cause, remove it. If it is a real, valid value (rare event, edge case, important customer), keep it — those values often contain the most useful information about process limits."}},{"@type":"Question","name":"Can box plots be used to compare more than two groups?","acceptedAnswer":{"@type":"Answer","text":"Yes — and this is where they shine. Stacking 4-8 box plots side by side reveals at a glance which group has the highest median, the widest spread, the most outliers, or systematic skew. It often makes a formal ANOVA result intuitively obvious before the test is run."}}]}</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a><a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a><a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a><a href="about.html">About</a>
+      <a href="contact.html">Contact</a><a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Box Plot Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Box Plot Calculator</h1>
+        <p class="lead">Paste your data and instantly visualise the five-number summary, IQR, whiskers, and outliers — with a real box plot chart and plain-English interpretation of distribution shape.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Key statistics</div>
+        <div class="formula-text">
+          IQR = Q3 &minus; Q1<br>
+          Lower fence = Q1 &minus; 1.5 &times; IQR<br>
+          Upper fence = Q3 + 1.5 &times; IQR<br>
+          Skewness &asymp; (Mean &minus; Median) / &sigma;
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your data</h2>
+        <p class="panel-sub">Paste numeric values separated by commas, spaces, or new lines. Minimum 4 values required.</p>
+
+        <div class="field">
+          <label for="dataset-label">Dataset name (optional)</label>
+          <input type="text" id="dataset-label" placeholder="e.g. Cycle time — Line A">
+        </div>
+
+        <div class="field">
+          <label for="data-input">Data values</label>
+          <span class="field-hint">Separate by commas, spaces, tabs, or new lines</span>
+          <textarea id="data-input" placeholder="e.g.&#10;12.3, 14.1, 11.8, 15.0, 13.4&#10;12.9, 16.2, 11.5, 13.8, 14.7&#10;22.1, 12.0, 13.5, 14.2, 13.9"></textarea>
+          <span class="field-error" id="data-err">Enter at least 4 valid numeric values.</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4E6;</div>
+          <h3>Ready to calculate</h3>
+          <p>Paste your data and press Calculate to see the five-number summary, IQR, outliers, and a real box plot chart.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+
+            <div class="result-label">Five-number summary</div>
+            <div class="five-num">
+              <div class="fn-box">
+                <div class="fn-label">Min</div>
+                <div class="fn-value" id="fn-min" style="color:#3a9fff">—</div>
+                <div class="fn-sub">Minimum</div>
+              </div>
+              <div class="fn-box">
+                <div class="fn-label">Q1</div>
+                <div class="fn-value" id="fn-q1" style="color:#8fd14f">—</div>
+                <div class="fn-sub">25th percentile</div>
+              </div>
+              <div class="fn-box">
+                <div class="fn-label">Median</div>
+                <div class="fn-value" id="fn-median" style="color:var(--accent)">—</div>
+                <div class="fn-sub">50th percentile</div>
+              </div>
+              <div class="fn-box">
+                <div class="fn-label">Q3</div>
+                <div class="fn-value" id="fn-q3" style="color:#8fd14f">—</div>
+                <div class="fn-sub">75th percentile</div>
+              </div>
+              <div class="fn-box">
+                <div class="fn-label">Max</div>
+                <div class="fn-value" id="fn-max" style="color:#3a9fff">—</div>
+                <div class="fn-sub">Maximum</div>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-label">IQR</div>
+                <div class="stat-value" id="stat-iqr" style="color:#d8ff3a">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value" id="stat-mean">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Std dev</div>
+                <div class="stat-value" id="stat-sd">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">n</div>
+                <div class="stat-value" id="stat-n">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Outliers</div>
+                <div class="stat-value" id="stat-out">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Range</div>
+                <div class="stat-value" id="stat-range">—</div>
+              </div>
+            </div>
+
+            <div class="skew-row">
+              <span class="skew-label">Distribution shape</span>
+              <span class="skew-value" id="skew-value">—</span>
+              <span class="skew-badge" id="skew-badge"></span>
+            </div>
+
+            <div class="outlier-section" id="outlier-section">
+              <div class="outlier-title" style="margin-top:14px">Outliers detected (beyond 1.5 × IQR)</div>
+              <div class="outlier-chips" id="outlier-chips"></div>
+            </div>
+
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-section" id="charts-section">
+
+      <!-- Box plot -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="boxplot-title">Box Plot</div>
+            <div class="chart-subtitle">Median, quartiles, whiskers (1.5 × IQR), and outlier points</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div style="width:14px;height:14px;background:rgba(216,255,58,.20);border:2px solid rgba(216,255,58,.7);border-radius:3px"></div>
+              <span>Interquartile range (IQR)</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:14px;height:3px;background:#d8ff3a;border-radius:2px"></div>
+              <span>Median</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:10px;height:10px;background:#a78bfa;border-radius:50%"></div>
+              <span>Mean</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:10px;height:10px;background:#ff8c42;border-radius:50%;border:2px solid #ff8c42"></div>
+              <span>Outlier</span>
+            </div>
+          </div>
+        </div>
+        <div class="boxplot-wrap">
+          <canvas id="boxplot-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Histogram -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Frequency Distribution (Histogram)</div>
+            <div class="chart-subtitle">Data grouped into bins — shows the overall shape and spread</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div style="width:14px;height:14px;background:rgba(216,255,58,.35);border-radius:2px"></div>
+              <span>Frequency</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:14px;height:3px;background:#a78bfa;border-radius:2px;border-top:2px dashed #a78bfa"></div>
+              <span>Mean</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:14px;height:3px;border-top:2px dashed #d8ff3a"></div>
+              <span>Median</span>
+            </div>
+          </div>
+        </div>
+        <div class="hist-wrap"><canvas id="hist-chart"></canvas></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">How to Interpret and Improve Your Process</div>
+      <div class="improve-sub">Practical guidance based on distribution shape, spread, and outliers</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 28px">Reading a box plot</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">IQR</div>
+        <h4>The box — middle 50%</h4>
+        <p>The box spans from Q1 (25th percentile) to Q3 (75th percentile). This is the Interquartile Range (IQR) — the spread of the middle 50% of your data. A narrow box means data is concentrated. A wide box means high variability in the core of the dataset.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">1.5×</div>
+        <h4>Whiskers — the expected range</h4>
+        <p>The whiskers extend to the most extreme values still within 1.5 × IQR of Q1 and Q3. Any data point beyond the whiskers is flagged as an outlier. Outliers are not errors by definition — they may represent real events worth investigating.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">⟂</div>
+        <h4>Skewness — distribution shape</h4>
+        <p>If the median is near the centre of the box, the data is roughly symmetric. If it is closer to Q1, the distribution is right-skewed (long upper tail). Closer to Q3 means left-skewed. Comparing the mean and median also reveals skewness direction and magnitude.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this box plot calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">The box plot — also called the box-and-whisker plot — is the fastest way to see the shape, spread and outliers of a sample at a glance. It encodes the 5-number summary (minimum, Q1, median, Q3, maximum) into a compact visual: a box from Q1 to Q3, a line at the median, whiskers extending to the most extreme values within 1.5×IQR of the quartiles, and individual points for any values outside that range (potential outliers). This calculator takes your raw data, returns the 5-number summary plus the IQR and a list of flagged outliers, and renders a clean box plot. Compare two or more groups side-by-side to see differences in centre, spread and tail behaviour without running a formal test.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator early in any data analysis: before running a t-test or ANOVA (to check the assumption of similar spreads), at the Measure stage of DMAIC, in QA acceptance reviews, or any time you need to communicate the shape of a sample to a non-statistical audience. It is also the right tool when comparing performance across operators, shifts, suppliers or product variants.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A sample of 25 cycle times yields min = 38, Q1 = 44, median = 47, Q3 = 51, max = 68. IQR = 51 - 44 = 7. Upper whisker limit = 51 + 1.5 × 7 = 61.5; lower whisker limit = 44 - 1.5 × 7 = 33.5. Two values (65 and 68) sit above the upper whisker and are flagged as outliers — both correlate with a known fixture issue at the start of shift 3, confirming a special cause rather than natural variation. Without the outliers the maximum drops to 56 and the data looks much tighter.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the 1.5×IQR outlier rule?</summary><p>Any value below Q1 - 1.5×IQR or above Q3 + 1.5×IQR is flagged as a potential outlier. The factor 1.5 was chosen by Tukey to flag roughly 0.7% of values from a normal distribution — a useful first filter, not a hard rule. Some applications use 3×IQR for "extreme" outliers.</p></details>
+      <details class="seo-faq-item"><summary>What does a box plot show that summary statistics cannot?</summary><p>Skew (asymmetry of the box around the median, or asymmetric whisker length), tail behaviour (whisker length and outliers), and direct visual comparison between groups. A mean and SD can be identical for very different distributions — the box plot exposes the difference instantly.</p></details>
+      <details class="seo-faq-item"><summary>How is a box plot different from a histogram?</summary><p>A histogram shows the full shape of the distribution but needs more data to be meaningful (50+ values). A box plot summarises the shape into five numbers and works well even on small samples (10-30 values). Use box plots to compare groups; use histograms to inspect a single distribution in detail.</p></details>
+      <details class="seo-faq-item"><summary>Should I always remove flagged outliers?</summary><p>No. Investigate them first. If the outlier is a measurement error, transcription error or known special cause, remove it. If it is a real, valid value (rare event, edge case, important customer), keep it — those values often contain the most useful information about process limits.</p></details>
+      <details class="seo-faq-item"><summary>Can box plots be used to compare more than two groups?</summary><p>Yes — and this is where they shine. Stacking 4-8 box plots side by side reveals at a glance which group has the highest median, the widest spread, the most outliers, or systematic skew. It often makes a formal ANOVA result intuitively obvious before the test is run.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* ── Utilities ── */
+function parseData(raw) {
+  return raw.split(/[\s,;\t\n]+/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s !== ''; })
+    .map(parseFloat)
+    .filter(function(v){ return !isNaN(v); });
+}
+
+function mean(arr) {
+  return arr.reduce(function(a,b){ return a+b; },0) / arr.length;
+}
+
+function stdDev(arr, m) {
+  if (arr.length < 2) return 0;
+  var mu = m !== undefined ? m : mean(arr);
+  return Math.sqrt(arr.reduce(function(s,v){ return s+(v-mu)*(v-mu); },0) / (arr.length - 1));
+}
+
+function quantile(sorted, p) {
+  var idx = p * (sorted.length - 1);
+  var lo  = Math.floor(idx);
+  var hi  = Math.ceil(idx);
+  var frac = idx - lo;
+  if (lo === hi) return sorted[lo];
+  return sorted[lo] * (1 - frac) + sorted[hi] * frac;
+}
+
+function fmt(v, dp) {
+  if (v === null || isNaN(v)) return 'N/A';
+  return parseFloat(v.toFixed(dp !== undefined ? dp : 4)).toString();
+}
+
+/* ── Histogram builder ── */
+var histChart = null;
+
+var meanLinePlugin = {
+  id:'meanLine',
+  afterDraw:function(chart){
+    if (!chart.config.options.meanLine) return;
+    var info = chart.config.options.meanLine;
+    var ctx  = chart.ctx, xAxis = chart.scales.x, yAxis = chart.scales.y;
+    info.forEach(function(line){
+      var xPx = xAxis.getPixelForValue(line.value);
+      if (xPx < xAxis.left || xPx > xAxis.right) return;
+      ctx.save();
+      ctx.setLineDash([5,4]);
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath(); ctx.moveTo(xPx, yAxis.top); ctx.lineTo(xPx, yAxis.bottom); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.fillStyle = line.color;
+      ctx.font = 'bold 11px Inter,sans-serif';
+      ctx.textAlign = line.align || 'center';
+      ctx.fillText(line.label, xPx + (line.offsetX||0), yAxis.top + 14);
+      ctx.restore();
+    });
+  }
+};
+Chart.register(meanLinePlugin);
+
+function buildHistogram(sorted, binCount, mu, med) {
+  var min = sorted[0], max = sorted[sorted.length-1];
+  var range = max - min;
+  if (range === 0) { binCount = 1; }
+  var bins = Math.min(binCount, 30);
+  var binW  = range / bins || 1;
+  var edges = [];
+  for (var i = 0; i <= bins; i++) edges.push(min + i * binW);
+
+  var counts = new Array(bins).fill(0);
+  sorted.forEach(function(v){
+    var idx = Math.min(Math.floor((v - min) / binW), bins - 1);
+    counts[idx]++;
+  });
+
+  var labels = edges.slice(0,-1).map(function(e,i){
+    return parseFloat(((e + edges[i+1])/2).toFixed(4)).toString();
+  });
+
+  var meanLines = [
+    { value:mu,  color:'#a78bfa', label:'Mean',   align:'center', offsetX:0 },
+    { value:med, color:'#d8ff3a', label:'Median', align:'center', offsetX:0 }
+  ];
+
+  var cfg = {
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'Frequency',
+        data:counts,
+        backgroundColor:'rgba(216,255,58,.25)',
+        borderColor:'rgba(216,255,58,.6)',
+        borderWidth:1,
+        borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{ duration:400 },
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
+        label:function(ctx){ return 'Count: ' + ctx.parsed.y; }
+      }}},
+      scales:{
+        x:{ grid:{ color:'rgba(255,255,255,.05)' }, border:{ color:'rgba(255,255,255,.10)' }, ticks:{ color:'#b8c0cc', font:{ size:11 }, maxTicksLimit:14 } },
+        y:{ grid:{ color:'rgba(255,255,255,.05)' }, border:{ color:'rgba(255,255,255,.10)' }, ticks:{ color:'#b8c0cc', font:{ size:11 } }, beginAtZero:true, title:{ display:true, text:'Frequency', color:'#b8c0cc', font:{ size:12, weight:'600' } } }
+      },
+      meanLine:meanLines
+    }
+  };
+
+  if (histChart) histChart.destroy();
+  histChart = new Chart(document.getElementById('hist-chart').getContext('2d'), cfg);
+}
+
+/* ── Box plot (Canvas 2D API) ── */
+function drawBoxPlot(sorted, q1, med, q3, mu, wLow, wHigh, outliers) {
+  var canvas = document.getElementById('boxplot-canvas');
+  var dpr    = window.devicePixelRatio || 1;
+  var cssW   = canvas.offsetWidth;
+  var cssH   = canvas.offsetHeight;
+  canvas.width  = cssW * dpr;
+  canvas.height = cssH * dpr;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  var pad = { top:36, bottom:56, left:24, right:24 };
+  var W = cssW - pad.left - pad.right;
+  var H = cssH - pad.top  - pad.bottom;
+  var midY = pad.top + H / 2;
+  var boxH = Math.round(H * 0.38);
+
+  /* Data range for x-axis */
+  var dataMin = sorted[0], dataMax = sorted[sorted.length-1];
+  var span = dataMax - dataMin || 1;
+  var xPad = span * 0.12;
+  var xMin = dataMin - xPad;
+  var xMax = dataMax + xPad;
+
+  function toX(v) { return pad.left + ((v - xMin) / (xMax - xMin)) * W; }
+
+  /* ── Background clear ── */
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  /* ── Grid lines (subtle) ── */
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  var steps = 8;
+  for (var i = 0; i <= steps; i++) {
+    var gx = pad.left + (W / steps) * i;
+    ctx.beginPath(); ctx.moveTo(gx, pad.top - 10); ctx.lineTo(gx, pad.top + H + 10); ctx.stroke();
+  }
+  ctx.restore();
+
+  /* ── X-axis ── */
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.left, pad.top + H + 8); ctx.lineTo(pad.left + W, pad.top + H + 8); ctx.stroke();
+
+  ctx.fillStyle = '#b8c0cc';
+  ctx.font = 'bold 11px Inter,sans-serif';
+  ctx.textAlign = 'center';
+  for (var i = 0; i <= steps; i++) {
+    var gx2 = pad.left + (W / steps) * i;
+    var val = xMin + ((xMax - xMin) / steps) * i;
+    ctx.fillText(parseFloat(val.toFixed(4)), gx2, pad.top + H + 26);
+  }
+  ctx.restore();
+
+  /* ── IQR fill (shaded box) ── */
+  var xQ1  = toX(q1);
+  var xMed = toX(med);
+  var xQ3  = toX(q3);
+  var boxTop    = midY - boxH / 2;
+  var boxBottom = midY + boxH / 2;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(216,255,58,0.09)';
+  ctx.strokeStyle = 'rgba(216,255,58,0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(xQ1, boxTop, xQ3 - xQ1, boxH, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  /* ── Whiskers ── */
+  var xWLow  = toX(wLow);
+  var xWHigh = toX(wHigh);
+  var capH   = boxH * 0.35;
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  /* Lower whisker line */
+  ctx.beginPath(); ctx.moveTo(xQ1, midY); ctx.lineTo(xWLow, midY); ctx.stroke();
+  /* Upper whisker line */
+  ctx.beginPath(); ctx.moveTo(xQ3, midY); ctx.lineTo(xWHigh, midY); ctx.stroke();
+  /* Cap marks */
+  ctx.beginPath(); ctx.moveTo(xWLow,  midY - capH/2); ctx.lineTo(xWLow,  midY + capH/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xWHigh, midY - capH/2); ctx.lineTo(xWHigh, midY + capH/2); ctx.stroke();
+  ctx.restore();
+
+  /* ── Median line ── */
+  ctx.save();
+  ctx.strokeStyle = '#d8ff3a';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(xMed, boxTop); ctx.lineTo(xMed, boxBottom); ctx.stroke();
+  ctx.restore();
+
+  /* ── Mean diamond ── */
+  var xMu = toX(mu);
+  var dmR = 7;
+  ctx.save();
+  ctx.fillStyle = '#a78bfa';
+  ctx.strokeStyle = 'rgba(167,139,250,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(xMu, midY - dmR);
+  ctx.lineTo(xMu + dmR, midY);
+  ctx.lineTo(xMu, midY + dmR);
+  ctx.lineTo(xMu - dmR, midY);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  /* ── Outlier dots ── */
+  ctx.save();
+  outliers.forEach(function(v){
+    var ox = toX(v);
+    ctx.beginPath();
+    ctx.arc(ox, midY, 5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,140,66,0.85)';
+    ctx.strokeStyle = '#ff8c42';
+    ctx.lineWidth = 1.5;
+    ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+
+  /* ── Data point jitter (non-outlier) ── */
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  var rng = function(seed){ return ((Math.sin(seed*9301+49297)*233280)%1); };
+  sorted.forEach(function(v, i){
+    if (outliers.indexOf(v) !== -1) return;
+    var px = toX(v);
+    var jY = midY + (rng(i) - 0.5) * boxH * 0.7;
+    ctx.beginPath();
+    ctx.arc(px, jY, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = '#d8ff3a';
+    ctx.fill();
+  });
+  ctx.restore();
+
+  /* ── Labels (Q1, Q2, Q3, mean, fences) ── */
+  ctx.save();
+  ctx.font = 'bold 11px Inter,sans-serif';
+  ctx.fillStyle = 'rgba(216,255,58,0.8)';
+  ctx.textAlign = 'center';
+
+  function labelAbove(x, text, offset) {
+    ctx.fillText(text, x, boxTop - (offset || 8));
+  }
+
+  labelAbove(xQ1,  'Q1',     8);
+  labelAbove(xMed, 'Med',    8);
+  labelAbove(xQ3,  'Q3',     8);
+
+  ctx.fillStyle = 'rgba(167,139,250,0.85)';
+  labelAbove(xMu, 'Mean', 8);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  if (Math.abs(xWLow - xQ1) > 30)  labelAbove(xWLow,  'Whisker', 8);
+  if (Math.abs(xWHigh - xQ3) > 30) labelAbove(xWHigh, 'Whisker', 8);
+  ctx.restore();
+}
+
+/* ── Skewness helper ── */
+function pearsonSkew(mu, med, sd) {
+  if (sd === 0) return 0;
+  return (mu - med) / sd;
+}
+
+function skewInfo(sk) {
+  var abs = Math.abs(sk);
+  var dir = sk > 0 ? 'right (positive)' : 'left (negative)';
+  if (abs < 0.10) return { text:'Approximately symmetric', badge:'Symmetric', color:'#3affb4', bg:'rgba(58,255,180,.10)' };
+  if (abs < 0.30) return { text:'Slight ' + dir + ' skew', badge:'Near symmetric', color:'#d8ff3a', bg:'rgba(216,255,58,.10)' };
+  if (abs < 0.60) return { text:'Moderate ' + dir + ' skew', badge:'Moderate skew', color:'#f5c518', bg:'rgba(245,197,24,.10)' };
+  return              { text:'Strong ' + dir + ' skew', badge:'Skewed', color:'#ff5c5c', bg:'rgba(255,92,92,.10)' };
+}
+
+/* ── Explanation ── */
+function getExplanation(n, q1, med, q3, mu, iqr, outliers, skew) {
+  var sk = skewInfo(skew);
+  var out = outliers.length;
+  var spread = iqr > 0 ? 'The middle 50% of values span ' + fmt(iqr) + ' units (IQR), ' : '';
+  var centre = 'with a median of ' + fmt(med) + ' and a mean of ' + fmt(mu,4) + '. ';
+  var shape  = sk.text + '. ';
+  var outStr = out === 0 ? 'No outliers were detected beyond 1.5 × IQR.' :
+    out + ' outlier' + (out>1?'s':'') + ' detected beyond the 1.5 × IQR fences — these points are unusually far from the central bulk and should be investigated individually.';
+  return spread + centre + shape + outStr;
+}
+
+/* ── Recommendations ── */
+function getRecommendations(n, iqr, outliers, skew, q1, q3, med, mu) {
+  var recs = [];
+  var sk = skewInfo(skew);
+  var abs = Math.abs(skew);
+
+  if (outliers.length > 0) {
+    recs.push({ icon:'&#x1F50D;', iconBg:'rgba(255,140,66,.12)', iconColor:'#ff8c42', head:'Investigate each outlier', text:'Each of the ' + outliers.length + ' outlier point' + (outliers.length>1?'s are':' is') + ' more than 1.5 × IQR from Q1 or Q3. Outliers may be data entry errors, exceptional events, or signals of process upsets. Investigate each one before deciding whether to include or exclude from analysis.' });
+  }
+
+  if (abs >= 0.30) {
+    var direction = skew > 0 ? 'right-skewed — there is a long tail of high values pulling the mean above the median' : 'left-skewed — a tail of low values pulls the mean below the median';
+    recs.push({ icon:'&#x1F4C8;', iconBg:'rgba(245,197,24,.12)', iconColor:'#f5c518', head:'Address process skewness', text:'The distribution is ' + direction + '. For a manufacturing or service process, skewness often signals one-sided constraints — a natural lower or upper boundary. Consider transformation or segmenting the data by causal factor (machine, operator, time period).' });
+  }
+
+  if (iqr > (q3 - q1) * 2.5) {
+    recs.push({ icon:'&#x2195;', iconBg:'rgba(255,92,92,.12)', iconColor:'#ff5c5c', head:'Reduce process spread', text:'The IQR is wide relative to the data range, suggesting high variability in the central portion of the process. Use a fishbone or 5 Whys analysis to identify factors driving variation — common suspects are raw material inconsistency, machine settings, or environmental changes.' });
+  }
+
+  if (abs < 0.10 && outliers.length === 0) {
+    recs.push({ icon:'&#x2713;', iconBg:'rgba(58,255,180,.12)', iconColor:'#3affb4', head:'Distribution is well-behaved', text:'The data is approximately symmetric with no outliers — a good foundation for parametric statistical analysis. This supports the use of Cp/Cpk, X̄-R control charts, and t-tests, which assume approximate normality.' });
+  }
+
+  if (n < 20) {
+    recs.push({ icon:'&#x1F4DD;', iconBg:'rgba(255,255,255,.05)', iconColor:'#b8c0cc', head:'Collect more data for reliability', text:'With only ' + n + ' values, the box plot statistics (especially quartile positions and outlier detection) are sensitive to individual points. Aim for at least 20–30 data points before drawing strong conclusions about distribution shape.' });
+  }
+
+  recs.push({ icon:'&#x1F4CA;', iconBg:'rgba(216,255,58,.12)', iconColor:'#d8ff3a', head:'Compare across groups or time periods', text:'The box plot is most powerful when comparing multiple datasets side by side — for example, different machines, operators, or time periods. Consistent medians and similar IQRs indicate a stable process; large differences highlight improvement opportunities.' });
+
+  return recs;
+}
+
+function renderRecs(recs) {
+  var grid = document.getElementById('rec-grid');
+  grid.innerHTML = '';
+  recs.forEach(function(r){
+    var d = document.createElement('div'); d.className = 'rec-item';
+    d.innerHTML = '<div class="rec-icon" style="background:' + r.iconBg + ';color:' + r.iconColor + '">' + r.icon + '</div>' +
+      '<div><div class="rec-head">' + r.head + '</div><p class="rec-text">' + r.text + '</p></div>';
+    grid.appendChild(d);
+  });
+}
+
+/* ── Main ── */
+function calculate() {
+  var raw  = document.getElementById('data-input').value;
+  var data = parseData(raw);
+  var dataEl  = document.getElementById('data-input');
+  var dataErr = document.getElementById('data-err');
+
+  if (data.length < 4) {
+    dataEl.classList.add('error'); dataErr.classList.add('visible'); return;
+  }
+  dataEl.classList.remove('error'); dataErr.classList.remove('visible');
+
+  var sorted = data.slice().sort(function(a,b){ return a-b; });
+  var n   = sorted.length;
+  var mu  = mean(sorted);
+  var sd  = stdDev(sorted, mu);
+  var q1  = quantile(sorted, 0.25);
+  var med = quantile(sorted, 0.50);
+  var q3  = quantile(sorted, 0.75);
+  var iqr = q3 - q1;
+  var lFence = q1 - 1.5 * iqr;
+  var uFence = q3 + 1.5 * iqr;
+
+  /* Whisker endpoints (most extreme non-outlier values) */
+  var wLow  = sorted.filter(function(v){ return v >= lFence; })[0];
+  var wHighArr = sorted.filter(function(v){ return v <= uFence; });
+  var wHigh = wHighArr[wHighArr.length - 1];
+
+  /* Outliers */
+  var outliers = sorted.filter(function(v){ return v < lFence || v > uFence; });
+
+  var skew = pearsonSkew(mu, med, sd);
+  var sk   = skewInfo(skew);
+
+  /* ── Five-number summary ── */
+  document.getElementById('fn-min').textContent    = fmt(sorted[0]);
+  document.getElementById('fn-q1').textContent     = fmt(q1);
+  document.getElementById('fn-median').textContent = fmt(med);
+  document.getElementById('fn-q3').textContent     = fmt(q3);
+  document.getElementById('fn-max').textContent    = fmt(sorted[n-1]);
+
+  /* ── Stats ── */
+  document.getElementById('stat-iqr').textContent   = fmt(iqr);
+  document.getElementById('stat-mean').textContent  = fmt(mu, 4);
+  document.getElementById('stat-sd').textContent    = fmt(sd, 4);
+  document.getElementById('stat-n').textContent     = n;
+  document.getElementById('stat-out').textContent   = outliers.length;
+  document.getElementById('stat-out').style.color   = outliers.length > 0 ? '#ff8c42' : '#3affb4';
+  document.getElementById('stat-range').textContent = fmt(sorted[n-1] - sorted[0]);
+
+  /* ── Skewness ── */
+  document.getElementById('skew-value').textContent = sk.text;
+  document.getElementById('skew-value').style.color = sk.color;
+  var badge = document.getElementById('skew-badge');
+  badge.textContent      = sk.badge;
+  badge.style.color      = sk.color;
+  badge.style.background = sk.bg;
+  badge.style.border     = '1px solid ' + sk.color;
+
+  /* ── Outlier chips ── */
+  var outSec   = document.getElementById('outlier-section');
+  var outChips = document.getElementById('outlier-chips');
+  if (outliers.length > 0) {
+    outChips.innerHTML = '';
+    outliers.forEach(function(v){
+      var c = document.createElement('span'); c.className = 'outlier-chip';
+      c.textContent = fmt(v); outChips.appendChild(c);
+    });
+    outSec.classList.add('visible');
+  } else {
+    outSec.classList.remove('visible');
+  }
+
+  /* ── Explanation ── */
+  document.getElementById('explanation-text').textContent =
+    getExplanation(n, q1, med, q3, mu, iqr, outliers, skew);
+
+  /* ── Dataset name ── */
+  var lbl = document.getElementById('dataset-label').value.trim();
+  document.getElementById('boxplot-title').textContent = lbl ? 'Box Plot — ' + lbl : 'Box Plot';
+
+  /* ── Show results ── */
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('result-panel').classList.add('visible');
+
+  /* ── Charts ── */
+  var cs = document.getElementById('charts-section');
+  cs.classList.add('visible');
+
+  /* Draw box plot after DOM update */
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      drawBoxPlot(sorted, q1, med, q3, mu, wLow, wHigh, outliers);
+      var bins = Math.max(5, Math.min(20, Math.round(1 + 3.322 * Math.log10(n))));
+      buildHistogram(sorted, bins, mu, med);
+    });
+  });
+
+  /* ── Recommendations ── */
+  renderRecs(getRecommendations(n, iqr, outliers, skew, q1, q3, med, mu));
+  document.getElementById('improve-section').classList.add('visible');
+}
+
+function resetCalc() {
+  document.getElementById('data-input').value = '';
+  document.getElementById('dataset-label').value = '';
+  document.getElementById('data-input').classList.remove('error');
+  document.getElementById('data-err').classList.remove('visible');
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('charts-section').classList.remove('visible');
+  document.getElementById('improve-section').classList.remove('visible');
+  if (histChart) { histChart.destroy(); histChart = null; }
+  var canvas = document.getElementById('boxplot-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+/* Redraw box plot on resize */
+var resizeTimer;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    if (document.getElementById('charts-section').classList.contains('visible')) {
+      document.getElementById('calculate-btn');
+      /* Re-trigger if we have data */
+      var raw = document.getElementById('data-input').value;
+      if (parseData(raw).length >= 4) calculate();
+    }
+  }, 200);
+});
+
+document.addEventListener('keydown', function(e){ if (e.key==='Enter' && e.ctrlKey) calculate(); });
+</script>
+</body>
+</html>

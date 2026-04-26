@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Control Limits Calculator | X-bar R Chart | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7; --muted:#b8c0cc; --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a; --shadow:0 20px 50px rgba(0,0,0,.35); --max:1240px;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at left 30%,rgba(216,255,58,.08),transparent 24%),
+    linear-gradient(180deg,#05070b 0%,#07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}
+
+  /* Header */
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative} nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;transition:width .25s}
+  nav a:hover::after,nav a.active::after{width:100%} nav a.active{color:var(--accent)}
+
+  /* Hero */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)} .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:13px;font-weight:700;color:var(--accent);font-family:monospace;letter-spacing:.02em;line-height:2.1}
+
+  /* Layout */
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+
+  /* Form */
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .panel-sub{font-size:14px;color:var(--muted);margin:0 0 24px}
+  .field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input,.field select,.field textarea{
+    width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:16px;
+    font-family:inherit;outline:none;transition:border-color .2s,background .2s
+  }
+  .field textarea{resize:vertical;min-height:120px;font-size:14px;line-height:1.6}
+  .field input::placeholder,.field textarea::placeholder{color:#4d5766}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.error,.field select.error,.field textarea.error{border-color:rgba(255,90,90,.5)}
+  .field select option{background:#0d1524}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  #subgroup-row{display:none}
+  #subgroup-row.visible{display:grid}
+
+  /* Buttons */
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* Results */
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+
+  /* Status bar */
+  .status-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:12px;margin-bottom:20px;border:1px solid}
+  .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .status-bar-text{font-size:15px;font-weight:800}
+  .status-bar-sub{font-size:13px;font-weight:600;margin-left:auto;opacity:.8}
+
+  /* Limits grid */
+  .limits-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  .limit-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:18px;padding:18px 20px;text-align:center}
+  .limit-box-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .limit-box-value{font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.02em;line-height:1}
+  .limit-box-sub{font-size:12px;color:var(--muted);margin-top:4px;font-weight:600}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .stat-box{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center}
+  .stat-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .stat-value{font-size:18px;font-weight:900;letter-spacing:-.02em}
+
+  /* OOC flags */
+  .ooc-list{margin-top:14px;display:none}
+  .ooc-list.visible{display:block}
+  .ooc-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .ooc-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .ooc-chip{padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;background:rgba(255,92,92,.12);color:#ff5c5c;border:1px solid rgba(255,92,92,.3)}
+
+  /* Rules list */
+  .rules-list{margin-top:14px}
+  .rule-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:rgba(255,92,92,.06);border:1px solid rgba(255,92,92,.2);border-radius:10px;margin-bottom:8px;font-size:14px;color:#ffb0b0}
+  .rule-icon{flex-shrink:0;font-weight:800}
+
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* Empty state */
+  .empty-state{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* Chart sections */
+  .charts-section{display:none;margin-top:28px}
+  .charts-section.visible{display:grid;grid-template-columns:1fr;gap:24px}
+  .chart-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top right,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .chart-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .chart-title{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:14px;color:var(--muted)}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted)}
+  .chart-wrap{position:relative;width:100%;height:260px}
+
+  /* Improvement section */
+  .improve-section{display:none;padding:0 0 48px}
+  .improve-section.visible{display:block}
+  .improve-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at bottom left,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+  .rec-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+  .rec-head{font-size:15px;font-weight:800;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* How it works */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* Footer */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg,#05070b 0%,#07101d 100%);color:#b8c0cc;font-size:17px;font-family:inherit}
+
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.limits-grid,.stats-row,.rec-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr} .formula-badge{display:none}
+    #subgroup-row.visible{grid-template-columns:1fr}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center} nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max),calc(100% - 28px))}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/controllimits.html">
+  <meta name="description" content="Free control limits calculator for X-bar and R charts. Enter subgroup data to compute UCL, LCL and centre lines using standard A2, D3 and D4 constants.">
+  <meta name="keywords" content="control limits calculator, X-bar R chart, UCL LCL calculator, control chart constants, A2 D3 D4, SPC calculator, statistical process control UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/controllimits.html">
+  <meta property="og:title" content="Control Limits Calculator | X-bar R Chart | SimplicityHub">
+  <meta property="og:description" content="Free control limits calculator for X-bar and R charts. Enter subgroup data to compute UCL, LCL and centre lines using standard A2, D3 and D4 constants.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Control Limits Calculator | X-bar R Chart | SimplicityHub">
+  <meta name="twitter:description" content="Free control limits calculator for X-bar and R charts. Enter subgroup data to compute UCL, LCL and centre lines using standard A2, D3 and D4 constants.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Control Limits Calculator","item":"https://www.simplicityhub.co.uk/pages/controllimits.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Control Limits Calculator","url":"https://www.simplicityhub.co.uk/pages/controllimits.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free control limits calculator for X-bar and R charts. Enter subgroup data to compute UCL, LCL and centre lines using standard A2, D3 and D4 constants.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What are the A2, D3 and D4 constants?","acceptedAnswer":{"@type":"Answer","text":"They are tabulated constants from SPC theory that convert the average range R-bar into a 3-sigma control limit estimate. A2 is for the X-bar chart; D3 and D4 are for the R chart. Their values depend only on the subgroup size n and are published in every SPC textbook."}},{"@type":"Question","name":"Why use control limits instead of specification limits?","acceptedAnswer":{"@type":"Answer","text":"Spec limits come from the customer and tell you what is acceptable. Control limits come from the process and tell you what is normal for it. A process can be in control (consistent) but out of spec, or in spec but out of control — both states need different responses."}},{"@type":"Question","name":"What subgroup size should I use?","acceptedAnswer":{"@type":"Answer","text":"n = 4 or 5 is the most common, balancing detection power against sampling cost. Smaller subgroups (n = 2-3) react faster but are noisier. Larger subgroups (n = 6-10) detect smaller shifts but cost more to sample and may average out short-lived special causes."}},{"@type":"Question","name":"How often should control limits be recalculated?","acceptedAnswer":{"@type":"Answer","text":"Recalculate after a confirmed, sustained process change (new equipment, new material, new operating procedure). Do not recalculate to \"tighten\" limits when special causes appear — that defeats the purpose of the chart. Limits are calculated once on a stable baseline and left alone."}},{"@type":"Question","name":"What does \"out of control\" actually mean?","acceptedAnswer":{"@type":"Answer","text":"A point outside the 3-sigma limits, or a recognisable pattern such as 7 points in a row on one side of the centre line, indicates the process is no longer behaving consistently. The point is a signal to investigate, not a defect — many out-of-control points produce in-spec output."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a><a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a><a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a><a href="about.html">About</a>
+      <a href="contact.html">Contact</a><a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Control Limits Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Quality &amp; Six Sigma</div>
+        <h1>Control Limits Calculator</h1>
+        <p class="lead">Paste your process data and instantly see UCL, CL, and LCL — with a live control chart that flags out-of-control points and Western Electric rule violations.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">I-MR formulas</div>
+        <div class="formula-text">
+          CL &nbsp;= x̄<br>
+          UCL = x̄ + 3(MR̄/d₂)<br>
+          LCL = x̄ − 3(MR̄/d₂)<br>
+          UCL<sub>MR</sub> = D₄ · MR̄
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <div class="panel">
+        <h2 class="panel-title">Enter your data</h2>
+        <p class="panel-sub">Paste numeric values separated by commas, spaces, or new lines. Minimum 5 data points required.</p>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="chart-type">Chart type</label>
+            <select id="chart-type" onchange="onChartTypeChange()">
+              <option value="imr">I-MR — Individuals &amp; Moving Range (individual measurements)</option>
+              <option value="xbar-r">X̄-R — X-bar &amp; Range (subgroup data)</option>
+            </select>
+          </div>
+
+          <div class="field-row" id="subgroup-row">
+            <div class="field">
+              <label for="subgroup-size">Subgroup size (n)</label>
+              <span class="field-hint">2–10 per subgroup</span>
+              <input type="number" id="subgroup-size" placeholder="e.g. 5" min="2" max="10" step="1" value="5">
+              <span class="field-error" id="subgroup-err">Subgroup size must be between 2 and 10.</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="data-input">Process data</label>
+            <span class="field-hint">Paste values separated by commas, spaces, tabs, or new lines</span>
+            <textarea id="data-input" placeholder="e.g.&#10;10.2, 10.4, 9.8, 10.1, 10.3&#10;9.9, 10.5, 10.0, 10.2, 9.7&#10;..."></textarea>
+            <span class="field-error" id="data-err">Enter at least 5 valid numeric values.</span>
+          </div>
+
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4C9;</div>
+          <h3>Ready to calculate</h3>
+          <p>Choose your chart type, paste your data, and press Calculate to see control limits and a live chart.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+
+            <div class="status-bar" id="status-bar">
+              <div class="status-dot" id="status-dot"></div>
+              <span class="status-bar-text" id="status-text"></span>
+              <span class="status-bar-sub" id="status-sub"></span>
+            </div>
+
+            <div class="result-label" id="x-chart-label">Individuals Chart (X) — Control Limits</div>
+            <div class="limits-grid">
+              <div class="limit-box">
+                <div class="limit-box-label">UCL</div>
+                <div class="limit-box-value" id="ucl-x" style="color:#ff5c5c">—</div>
+                <div class="limit-box-sub">Upper control limit</div>
+              </div>
+              <div class="limit-box">
+                <div class="limit-box-label">CL</div>
+                <div class="limit-box-value" id="cl-x" style="color:var(--accent)">—</div>
+                <div class="limit-box-sub">Centre line (mean)</div>
+              </div>
+              <div class="limit-box">
+                <div class="limit-box-label">LCL</div>
+                <div class="limit-box-value" id="lcl-x" style="color:#3a9fff">—</div>
+                <div class="limit-box-sub">Lower control limit</div>
+              </div>
+            </div>
+
+            <div class="result-label" id="mr-chart-label" style="margin-top:18px">Moving Range Chart (MR) — Control Limits</div>
+            <div class="limits-grid">
+              <div class="limit-box">
+                <div class="limit-box-label">UCL<sub>MR</sub></div>
+                <div class="limit-box-value" id="ucl-mr" style="color:#ff5c5c">—</div>
+                <div class="limit-box-sub">Upper control limit</div>
+              </div>
+              <div class="limit-box">
+                <div class="limit-box-label">CL<sub>MR</sub></div>
+                <div class="limit-box-value" id="cl-mr" style="color:var(--accent)">—</div>
+                <div class="limit-box-sub">Centre line (MR̄ or R̄)</div>
+              </div>
+              <div class="limit-box">
+                <div class="limit-box-label">LCL<sub>MR</sub></div>
+                <div class="limit-box-value" id="lcl-mr" style="color:#3a9fff">—</div>
+                <div class="limit-box-sub">Lower control limit</div>
+              </div>
+            </div>
+
+            <div class="stats-row">
+              <div class="stat-box">
+                <div class="stat-label">n points</div>
+                <div class="stat-value" id="stat-n">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value" id="stat-mean">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Out-of-control</div>
+                <div class="stat-value" id="stat-ooc">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Std dev (s)</div>
+                <div class="stat-value" id="stat-sd">—</div>
+              </div>
+            </div>
+
+            <div class="ooc-list" id="ooc-list">
+              <div class="ooc-title">Out-of-control points (X chart)</div>
+              <div class="ooc-chips" id="ooc-chips"></div>
+            </div>
+
+            <div class="rules-list" id="rules-list" style="display:none;margin-top:14px"></div>
+
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-section" id="charts-section">
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="x-chart-title">Individuals Chart (X)</div>
+            <div class="chart-subtitle">Each point is one measurement. Red points are outside the 3σ control limits.</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div style="width:14px;height:3px;background:#ff5c5c;border-radius:2px"></div><span>UCL / LCL</span></div>
+            <div class="legend-item"><div style="width:14px;height:3px;background:#d8ff3a;border-radius:2px"></div><span>Centre line</span></div>
+            <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:#ff5c5c"></div><span>Out-of-control</span></div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="x-chart"></canvas></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title" id="mr-chart-title">Moving Range Chart (MR)</div>
+            <div class="chart-subtitle">Absolute difference between consecutive measurements. Points above UCL indicate unusual spikes.</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div style="width:14px;height:3px;background:#ff5c5c;border-radius:2px"></div><span>UCL</span></div>
+            <div class="legend-item"><div style="width:14px;height:3px;background:#d8ff3a;border-radius:2px"></div><span>MR̄</span></div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="mr-chart"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">How to Respond to Your Chart</div>
+      <div class="improve-sub">Practical actions based on what your control chart is showing</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 28px">Understanding control charts</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">3σ</div>
+        <h4>Control limits are not spec limits</h4>
+        <p>UCL and LCL are calculated from the data itself — they represent natural process variation (±3σ). A point outside the limits signals an unusual event, not necessarily a defect. Spec limits are set by the customer; control limits are set by the process.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">I-MR</div>
+        <h4>When to use each chart type</h4>
+        <p>Use I-MR when you measure one item at a time or data is collected infrequently — one reading per time period. Use X̄-R when you sample groups of 2–10 items at regular intervals and want to detect both mean shifts and variation changes.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">WE</div>
+        <h4>Western Electric rules</h4>
+        <p>Beyond single out-of-control points, Western Electric rules flag non-random patterns: 8 consecutive points on one side of the centre line, 6 points in a trend, or 2 of 3 points in the outer third of the chart — all indicate process changes worth investigating.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this control limits calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Control limits are the heart of Statistical Process Control (SPC). They define the boundary between common-cause variation (the natural noise of a stable process) and special-cause variation (a signal that something has changed). The standard X-bar / R chart uses 3-sigma limits calculated from subgroups of constant size, with tabulated constants A2, D3 and D4 that depend on subgroup size n. This calculator takes your subgroup data, computes the grand mean (X-double-bar), the average range (R-bar), and applies the right constants to return the upper and lower control limits for both the X-bar chart and the R chart, plus a chart of the data points against those limits.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator when starting up a new SPC chart, refreshing limits after a confirmed process change, validating limits passed down from another team, or verifying capability-study assumptions of statistical control. It is also the right tool when an out-of-control point is questioned and you need to recompute limits from the original data.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A subgroup of size n = 5 is sampled hourly for 25 hours. Grand mean X-double-bar = 50.2; average range R-bar = 4.1. From the standard table for n = 5: A2 = 0.577, D3 = 0, D4 = 2.114. X-bar UCL = 50.2 + 0.577 × 4.1 = 52.57; X-bar LCL = 50.2 - 2.37 = 47.83. R chart UCL = 2.114 × 4.1 = 8.67; R chart LCL = 0. Two of the 25 X-bar points fall above UCL — both correlate with a known shift change, confirming a special cause to investigate.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What are the A2, D3 and D4 constants?</summary><p>They are tabulated constants from SPC theory that convert the average range R-bar into a 3-sigma control limit estimate. A2 is for the X-bar chart; D3 and D4 are for the R chart. Their values depend only on the subgroup size n and are published in every SPC textbook.</p></details>
+      <details class="seo-faq-item"><summary>Why use control limits instead of specification limits?</summary><p>Spec limits come from the customer and tell you what is acceptable. Control limits come from the process and tell you what is normal for it. A process can be in control (consistent) but out of spec, or in spec but out of control — both states need different responses.</p></details>
+      <details class="seo-faq-item"><summary>What subgroup size should I use?</summary><p>n = 4 or 5 is the most common, balancing detection power against sampling cost. Smaller subgroups (n = 2-3) react faster but are noisier. Larger subgroups (n = 6-10) detect smaller shifts but cost more to sample and may average out short-lived special causes.</p></details>
+      <details class="seo-faq-item"><summary>How often should control limits be recalculated?</summary><p>Recalculate after a confirmed, sustained process change (new equipment, new material, new operating procedure). Do not recalculate to "tighten" limits when special causes appear — that defeats the purpose of the chart. Limits are calculated once on a stable baseline and left alone.</p></details>
+      <details class="seo-faq-item"><summary>What does "out of control" actually mean?</summary><p>A point outside the 3-sigma limits, or a recognisable pattern such as 7 points in a row on one side of the centre line, indicates the process is no longer behaving consistently. The point is a signal to investigate, not a defect — many out-of-control points produce in-spec output.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* ── Control chart constants ── */
+var CONSTANTS = {
+  /* n: { d2, D3, D4, A2 } */
+  2:  { d2:1.128, D3:0,     D4:3.267, A2:1.880 },
+  3:  { d2:1.693, D3:0,     D4:2.574, A2:1.023 },
+  4:  { d2:2.059, D3:0,     D4:2.282, A2:0.729 },
+  5:  { d2:2.326, D3:0,     D4:2.114, A2:0.577 },
+  6:  { d2:2.534, D3:0,     D4:2.004, A2:0.483 },
+  7:  { d2:2.704, D3:0.076, D4:1.924, A2:0.419 },
+  8:  { d2:2.847, D3:0.136, D4:1.864, A2:0.373 },
+  9:  { d2:2.970, D3:0.184, D4:1.816, A2:0.337 },
+  10: { d2:3.078, D3:0.223, D4:1.777, A2:0.308 }
+};
+
+var xChart = null, mrChart = null;
+
+function onChartTypeChange() {
+  var t = document.getElementById('chart-type').value;
+  var row = document.getElementById('subgroup-row');
+  row.className = t === 'xbar-r' ? 'field-row visible' : 'field-row';
+}
+
+function parseData(raw) {
+  return raw.split(/[\s,;\t\n]+/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s !== ''; })
+    .map(function(s){ return parseFloat(s); })
+    .filter(function(v){ return !isNaN(v); });
+}
+
+function mean(arr) {
+  return arr.reduce(function(a,b){ return a+b; }, 0) / arr.length;
+}
+
+function stdDev(arr) {
+  var m = mean(arr);
+  return Math.sqrt(arr.reduce(function(s,v){ return s + (v-m)*(v-m); }, 0) / (arr.length - 1));
+}
+
+function fmt(v, dp) {
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  return v.toFixed(dp !== undefined ? dp : 4);
+}
+
+/* ── Western Electric rules ── */
+function checkWERules(data, cl, ucl, lcl) {
+  var violations = [];
+  var sigma = (ucl - cl) / 3;
+  var zone1 = sigma, zone2 = sigma * 2;
+
+  function side(v){ return v >= cl ? 1 : -1; }
+
+  /* Rule 1: Point beyond 3σ — already captured as OOC */
+  /* Rule 2: 8 consecutive on same side of CL */
+  for (var i = 7; i < data.length; i++) {
+    var s0 = side(data[i]);
+    var all = true;
+    for (var j = i-7; j <= i; j++) { if (side(data[j]) !== s0) { all=false; break; } }
+    if (all) { violations.push('Rule 2 — 8+ consecutive points on one side of the centre line (points ' + (i-6) + '–' + (i+1) + ')'); break; }
+  }
+  /* Rule 3: 6 consecutive trending */
+  for (var i = 5; i < data.length; i++) {
+    var up = true, down = true;
+    for (var j = i-5; j < i; j++) {
+      if (data[j+1] <= data[j]) up = false;
+      if (data[j+1] >= data[j]) down = false;
+    }
+    if (up || down) { violations.push('Rule 3 — 6+ consecutive points trending ' + (up ? 'upward' : 'downward') + ' (points ' + (i-4) + '–' + (i+1) + ')'); break; }
+  }
+  /* Rule 4: 2 of 3 beyond 2σ on same side */
+  for (var i = 2; i < data.length; i++) {
+    var seg = [data[i-2], data[i-1], data[i]];
+    var aboveCount = seg.filter(function(v){ return v > cl + zone2; }).length;
+    var belowCount = seg.filter(function(v){ return v < cl - zone2; }).length;
+    if (aboveCount >= 2 || belowCount >= 2) {
+      violations.push('Rule 4 — 2 of 3 consecutive points beyond the 2σ zone (near points ' + (i-1) + '–' + (i+1) + ')');
+      break;
+    }
+  }
+  return violations;
+}
+
+/* ── Build Chart.js control chart ── */
+function buildControlChart(canvasId, labels, values, cl, ucl, lcl, oocSet, existingChart, label, yLabel) {
+  var pointColors = values.map(function(v, i){ return oocSet.has(i) ? '#ff5c5c' : 'rgba(216,255,58,.9)'; });
+  var pointRadii  = values.map(function(v, i){ return oocSet.has(i) ? 5 : 3; });
+
+  var clLine  = values.map(function(){ return cl;  });
+  var uclLine = values.map(function(){ return ucl; });
+  var lclLine = lcl !== null ? values.map(function(){ return lcl; }) : null;
+
+  var datasets = [
+    { label:'UCL', data:uclLine, borderColor:'rgba(255,92,92,.7)', backgroundColor:'transparent', pointRadius:0, borderWidth:1.5, borderDash:[4,3] },
+    { label:yLabel || 'CL', data:clLine, borderColor:'rgba(216,255,58,.8)', backgroundColor:'transparent', pointRadius:0, borderWidth:1.5, borderDash:[4,3] },
+    { label:label, data:values, borderColor:'rgba(255,255,255,.55)', backgroundColor:'transparent', pointBackgroundColor:pointColors, pointRadius:pointRadii, pointHoverRadius:6, borderWidth:1.5, tension:0.2 }
+  ];
+  if (lclLine) {
+    datasets.splice(2, 0, { label:'LCL', data:lclLine, borderColor:'rgba(58,159,255,.7)', backgroundColor:'transparent', pointRadius:0, borderWidth:1.5, borderDash:[4,3] });
+  }
+
+  var cfg = {
+    type:'line',
+    data:{ labels:labels, datasets:datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{ duration:400 },
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{
+        label:function(ctx){ return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(4); }
+      }}},
+      scales:{
+        x:{ grid:{ color:'rgba(255,255,255,.05)' }, border:{ color:'rgba(255,255,255,.10)' }, ticks:{ color:'#b8c0cc', font:{ size:11 }, maxTicksLimit:20 } },
+        y:{ grid:{ color:'rgba(255,255,255,.05)' }, border:{ color:'rgba(255,255,255,.10)' }, ticks:{ color:'#b8c0cc', font:{ size:11 }, callback:function(v){ return parseFloat(v.toFixed(4)); } } }
+      }
+    }
+  };
+
+  if (existingChart) { existingChart.destroy(); }
+  return new Chart(document.getElementById(canvasId).getContext('2d'), cfg);
+}
+
+/* ── Main calculate ── */
+function calculate() {
+  var raw  = document.getElementById('data-input').value;
+  var type = document.getElementById('chart-type').value;
+  var dataEl  = document.getElementById('data-input');
+  var dataErr = document.getElementById('data-err');
+
+  var data = parseData(raw);
+  var minPoints = type === 'xbar-r' ? 10 : 5;
+  if (data.length < minPoints) {
+    dataEl.classList.add('error');
+    dataErr.textContent = 'Enter at least ' + minPoints + ' valid numeric values.';
+    dataErr.classList.add('visible');
+    return;
+  }
+  dataEl.classList.remove('error'); dataErr.classList.remove('visible');
+
+  var ucl_x, cl_x, lcl_x, ucl_mr, cl_mr, lcl_mr;
+  var xValues, mrValues, xLabels, mrLabels;
+  var oocX = new Set();
+
+  if (type === 'imr') {
+    /* I-MR */
+    var C = CONSTANTS[2];
+    var xBar = mean(data);
+    var mrs  = [];
+    for (var i = 1; i < data.length; i++) mrs.push(Math.abs(data[i] - data[i-1]));
+    var mrBar = mean(mrs);
+
+    ucl_x = xBar + 3 * (mrBar / C.d2);
+    cl_x  = xBar;
+    lcl_x = xBar - 3 * (mrBar / C.d2);
+    ucl_mr = C.D4 * mrBar;
+    cl_mr  = mrBar;
+    lcl_mr = 0;
+
+    xValues  = data;
+    mrValues = mrs;
+    xLabels  = data.map(function(_,i){ return i+1; });
+    mrLabels = mrs.map(function(_,i){ return (i+1)+'-'+(i+2); });
+
+    data.forEach(function(v,i){ if (v > ucl_x || v < lcl_x) oocX.add(i); });
+
+    document.getElementById('x-chart-label').textContent  = 'Individuals Chart (X) — Control Limits';
+    document.getElementById('mr-chart-label').textContent = 'Moving Range Chart (MR) — Control Limits';
+    document.getElementById('x-chart-title').textContent  = 'Individuals Chart (X)';
+    document.getElementById('mr-chart-title').textContent = 'Moving Range Chart (MR)';
+
+  } else {
+    /* X-bar & R */
+    var nEl  = document.getElementById('subgroup-size');
+    var nErr = document.getElementById('subgroup-err');
+    var n    = parseInt(nEl.value);
+    if (isNaN(n) || n < 2 || n > 10) {
+      nEl.classList.add('error'); nErr.classList.add('visible'); return;
+    }
+    nEl.classList.remove('error'); nErr.classList.remove('visible');
+    var C = CONSTANTS[n];
+
+    /* Build subgroups */
+    var groups = [];
+    for (var i = 0; i + n <= data.length; i += n) groups.push(data.slice(i, i+n));
+    if (groups.length < 2) {
+      dataEl.classList.add('error');
+      dataErr.textContent = 'Not enough data for ' + groups.length + ' complete subgroup(s) of size ' + n + '. Add more values.';
+      dataErr.classList.add('visible');
+      return;
+    }
+
+    var xBars = groups.map(mean);
+    var ranges = groups.map(function(g){ return Math.max.apply(null,g) - Math.min.apply(null,g); });
+    var xBarBar = mean(xBars);
+    var rBar    = mean(ranges);
+
+    ucl_x = xBarBar + C.A2 * rBar;
+    cl_x  = xBarBar;
+    lcl_x = xBarBar - C.A2 * rBar;
+    ucl_mr = C.D4 * rBar;
+    cl_mr  = rBar;
+    lcl_mr = C.D3 * rBar;
+
+    xValues  = xBars;
+    mrValues = ranges;
+    xLabels  = xBars.map(function(_,i){ return 'Grp '+(i+1); });
+    mrLabels = ranges.map(function(_,i){ return 'Grp '+(i+1); });
+
+    xBars.forEach(function(v,i){ if (v > ucl_x || v < lcl_x) oocX.add(i); });
+
+    document.getElementById('x-chart-label').textContent  = 'X̄ Chart — Control Limits';
+    document.getElementById('mr-chart-label').textContent = 'Range Chart (R) — Control Limits';
+    document.getElementById('x-chart-title').textContent  = 'X̄ Chart (Subgroup Means)';
+    document.getElementById('mr-chart-title').textContent = 'Range Chart (R)';
+    data = data.slice(0, groups.length * n); /* trimmed data for stats */
+  }
+
+  /* ── Summary stats ── */
+  var overallMean = mean(data);
+  var overallSD   = data.length > 1 ? stdDev(data) : 0;
+  var oocCount    = oocX.size;
+
+  /* ── Status bar ── */
+  var inControl = oocCount === 0;
+  var statusColor = inControl ? '#3affb4' : (oocCount <= 2 ? '#f5c518' : '#ff5c5c');
+  var statusBg    = inControl ? 'rgba(58,255,180,.08)' : (oocCount <= 2 ? 'rgba(245,197,24,.08)' : 'rgba(255,92,92,.08)');
+  var statusBorder= inControl ? 'rgba(58,255,180,.25)' : (oocCount <= 2 ? 'rgba(245,197,24,.25)' : 'rgba(255,92,92,.25)');
+  var sBar = document.getElementById('status-bar');
+  sBar.style.background  = statusBg;
+  sBar.style.borderColor = statusBorder;
+  document.getElementById('status-dot').style.background = statusColor;
+  document.getElementById('status-text').textContent = inControl ? 'Process is in statistical control' : oocCount + ' out-of-control point' + (oocCount>1?'s':'') + ' detected';
+  document.getElementById('status-text').style.color = statusColor;
+  document.getElementById('status-sub').textContent = inControl ? 'No points outside the 3σ control limits' : 'Investigate assignable causes for flagged points';
+
+  /* ── Limits ── */
+  document.getElementById('ucl-x').textContent = fmt(ucl_x);
+  document.getElementById('cl-x').textContent  = fmt(cl_x);
+  document.getElementById('lcl-x').textContent = fmt(lcl_x);
+  document.getElementById('ucl-mr').textContent = fmt(ucl_mr);
+  document.getElementById('cl-mr').textContent  = fmt(cl_mr);
+  document.getElementById('lcl-mr').textContent = fmt(Math.max(0, lcl_mr));
+
+  /* ── Stats ── */
+  document.getElementById('stat-n').textContent    = xValues.length;
+  document.getElementById('stat-mean').textContent = fmt(overallMean, 4);
+  document.getElementById('stat-ooc').textContent  = oocCount + ' / ' + xValues.length;
+  document.getElementById('stat-sd').textContent   = fmt(overallSD, 4);
+  document.getElementById('stat-ooc').style.color  = inControl ? '#3affb4' : '#ff5c5c';
+
+  /* ── OOC chips ── */
+  var oocListEl = document.getElementById('ooc-list');
+  var chipsEl   = document.getElementById('ooc-chips');
+  if (oocCount > 0) {
+    chipsEl.innerHTML = '';
+    Array.from(oocX).sort(function(a,b){return a-b;}).forEach(function(i){
+      var chip = document.createElement('span');
+      chip.className = 'ooc-chip';
+      chip.textContent = 'Point ' + (i+1) + ' (' + fmt(xValues[i],4) + ')';
+      chipsEl.appendChild(chip);
+    });
+    oocListEl.classList.add('visible');
+  } else {
+    oocListEl.classList.remove('visible');
+  }
+
+  /* ── Western Electric rules ── */
+  var violations = checkWERules(xValues, cl_x, ucl_x, lcl_x);
+  var rulesEl = document.getElementById('rules-list');
+  if (violations.length > 0) {
+    rulesEl.style.display = '';
+    rulesEl.innerHTML = violations.map(function(v){
+      return '<div class="rule-item"><span class="rule-icon">&#x26A0;</span>' + v + '</div>';
+    }).join('');
+  } else {
+    rulesEl.style.display = 'none';
+  }
+
+  /* ── Explanation ── */
+  var expText;
+  if (inControl && violations.length === 0) {
+    expText = 'All ' + xValues.length + ' points are within the 3σ control limits and no non-random patterns are detected. The process is in statistical control — meaning it is stable, consistent, and predictable. Variation is due to common causes only. This is the necessary starting point before capability (Cp/Cpk, Pp/Ppk) can be meaningfully assessed.';
+  } else {
+    var parts = [];
+    if (oocCount > 0) parts.push(oocCount + ' point' + (oocCount>1?'s are':' is') + ' outside the control limits — indicating special cause variation that should be investigated and eliminated');
+    if (violations.length > 0) parts.push(violations.length + ' Western Electric rule violation' + (violations.length>1?'s':'') + ' detected, suggesting non-random patterns in the data');
+    expText = 'The process is not in statistical control. ' + parts.join(', and ') + '. Special causes must be identified and removed before process capability indices (Cp/Cpk) can be reliably calculated — capability analysis on an unstable process gives misleading results.';
+  }
+  document.getElementById('explanation-text').textContent = expText;
+
+  /* ── Show results ── */
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('result-panel').classList.add('visible');
+
+  /* ── Charts ── */
+  document.getElementById('charts-section').classList.add('visible');
+  var oocMR = new Set();
+  mrValues.forEach(function(v,i){ if (v > ucl_mr) oocMR.add(i); });
+  xChart  = buildControlChart('x-chart',  xLabels,  xValues,  cl_x,  ucl_x,  lcl_x,  oocX,  xChart,  'X', 'x̄');
+  mrChart = buildControlChart('mr-chart', mrLabels, mrValues, cl_mr, ucl_mr, 0,      oocMR, mrChart, 'MR', 'MR̄');
+
+  /* ── Recommendations ── */
+  renderRecs(getRecommendations(inControl, oocCount, violations, xValues.length));
+  document.getElementById('improve-section').classList.add('visible');
+}
+
+/* ── Recommendations ── */
+function getRecommendations(inControl, oocCount, violations, n) {
+  var recs = [];
+  if (inControl && violations.length === 0) {
+    recs.push({ icon:'&#x2713;', iconBg:'rgba(58,255,180,.12)', iconColor:'#3affb4', head:'Process is stable — now assess capability', text:'A process in control is predictable. This is the right time to calculate Cp/Cpk or Pp/Ppk. Capability analysis is only valid when the process is stable — if you calculate capability on an unstable process, the results are meaningless.' });
+    recs.push({ icon:'&#x1F4CA;', iconBg:'rgba(216,255,58,.12)', iconColor:'#d8ff3a', head:'Set a baseline and continue monitoring', text:'Save these control limits as your baseline. Continue charting new data against these limits. The goal is early detection of any shift — a point beyond the limits should trigger immediate investigation before defects accumulate.' });
+    if (n < 20) recs.push({ icon:'&#x1F4DD;', iconBg:'rgba(255,255,255,.05)', iconColor:'#b8c0cc', head:'Consider collecting more data', text:'With ' + n + ' data points, the control limits are based on a limited sample. Collect at least 20–25 data points for more stable and reliable limits before making long-term decisions.' });
+  } else {
+    if (oocCount > 0) {
+      recs.push({ icon:'&#x1F50D;', iconBg:'rgba(255,92,92,.12)', iconColor:'#ff5c5c', head:'Investigate out-of-control points', text:'Each flagged point represents an unusual event with a special cause — something that changed in the process at that moment. For each point, ask: what was different? Consider 5 Whys or an Ishikawa diagram to trace the root cause.' });
+      recs.push({ icon:'&#x1F6AB;', iconBg:'rgba(255,92,92,.12)', iconColor:'#ff5c5c', head:'Do not adjust for common cause variation', text:'Only adjust the process in response to confirmed special causes — never for random variation within the control limits. Tampering with an in-control process increases variation (Deming\'s funnel experiment). Only act on points outside the limits or clear patterns.' });
+    }
+    if (violations.length > 0) {
+      recs.push({ icon:'&#x26A0;', iconBg:'rgba(245,197,24,.12)', iconColor:'#f5c518', head:'Investigate non-random patterns', text:'Western Electric rule violations indicate the process is drifting or shifting in a non-random way — even if individual points are within the limits. Look for trends, cycles, or stratification that could indicate equipment wear, environmental changes, or operator patterns.' });
+    }
+    recs.push({ icon:'&#x1F527;', iconBg:'rgba(255,140,66,.12)', iconColor:'#ff8c42', head:'Remove special causes, then recalculate limits', text:'After identifying and eliminating each special cause, exclude the affected data points and recalculate the control limits using only the remaining stable data. Do not include special-cause points in the base for new limits.' });
+  }
+  return recs;
+}
+
+function renderRecs(recs) {
+  var grid = document.getElementById('rec-grid');
+  grid.innerHTML = '';
+  recs.forEach(function(r){
+    var d = document.createElement('div');
+    d.className = 'rec-item';
+    d.innerHTML = '<div class="rec-icon" style="background:' + r.iconBg + ';color:' + r.iconColor + '">' + r.icon + '</div>' +
+      '<div><div class="rec-head">' + r.head + '</div><p class="rec-text">' + r.text + '</p></div>';
+    grid.appendChild(d);
+  });
+}
+
+/* ── Reset ── */
+function resetCalc() {
+  document.getElementById('data-input').value = '';
+  document.getElementById('data-input').classList.remove('error');
+  document.getElementById('data-err').classList.remove('visible');
+  document.getElementById('subgroup-err').classList.remove('visible');
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('charts-section').classList.remove('visible');
+  document.getElementById('improve-section').classList.remove('visible');
+  if (xChart)  { xChart.destroy();  xChart  = null; }
+  if (mrChart) { mrChart.destroy(); mrChart = null; }
+}
+
+document.addEventListener('keydown', function(e){ if (e.key==='Enter' && e.ctrlKey) calculate(); });
+</script>
+</body>
+</html>

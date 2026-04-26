@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Rolled Throughput Yield Calculator | RTY | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/rty.html">
+  <meta name="description" content="Free Rolled Throughput Yield (RTY) calculator. Multiply step yields to expose the hidden factory and find the cumulative first-pass yield of a multi-step process.">
+  <meta name="keywords" content="RTY calculator, rolled throughput yield, first pass yield, hidden factory, six sigma RTY, process yield calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/rty.html">
+  <meta property="og:title" content="Rolled Throughput Yield Calculator | RTY | SimplicityHub">
+  <meta property="og:description" content="Free Rolled Throughput Yield (RTY) calculator. Multiply step yields to expose the hidden factory and find the cumulative first-pass yield of a multi-step process.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rolled Throughput Yield Calculator | RTY | SimplicityHub">
+  <meta name="twitter:description" content="Free Rolled Throughput Yield (RTY) calculator. Multiply step yields to expose the hidden factory and find the cumulative first-pass yield of a multi-step process.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Rolled Throughput Yield Calculator","item":"https://www.simplicityhub.co.uk/pages/rty.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Rolled Throughput Yield Calculator","url":"https://www.simplicityhub.co.uk/pages/rty.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free Rolled Throughput Yield (RTY) calculator. Multiply step yields to expose the hidden factory and find the cumulative first-pass yield of a multi-step process.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between RTY and final yield?","acceptedAnswer":{"@type":"Answer","text":"Final yield only counts what passes the final inspection, regardless of how much rework happened along the way. RTY is the probability of a unit passing every step the first time, with no rework. RTY is always lower than final yield — and the gap is the size of your hidden factory."}},{"@type":"Question","name":"What is the hidden factory?","acceptedAnswer":{"@type":"Answer","text":"The hidden factory is the unmeasured cost of rework, retest, sort, scrap and re-handling that lives between formal process steps. It consumes 15-30% of capacity in many manufacturing operations and almost never appears on any KPI dashboard."}},{"@type":"Question","name":"How do I measure first-pass yield for each step?","acceptedAnswer":{"@type":"Answer","text":"Count units entering the step and units leaving without rework, repair or retest. The ratio is FPY for that step. Tracking this honestly (rather than counting reworked units as \"passed\") is the single biggest barrier to credible RTY numbers — and the most valuable."}},{"@type":"Question","name":"What is a good RTY?","acceptedAnswer":{"@type":"Answer","text":"Above 95% is excellent for any multi-step process. 80-95% is typical for well-managed assemblies. Below 70% indicates either too many steps, too much rework or both, and is a strong signal to map the value stream end to end and remove or simplify steps."}},{"@type":"Question","name":"Where should I focus when RTY is low?","acceptedAnswer":{"@type":"Answer","text":"Find the step with the largest defect contribution (the largest 1 - FPY weighted by step volume). Improving the worst step usually delivers more RTY uplift than improving any other. Plot a Pareto of step defects to make the choice obvious."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Rolled Throughput Yield Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Quality &amp; Six Sigma</div>
+        <h1>Rolled Throughput Yield Calculator</h1>
+        <p class="lead">Multiply individual process step yields together to reveal true end-to-end performance — exposing hidden defects and the cumulative impact of variation across a multi-step process.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">RTY = Y₁ × Y₂ × Y₃ ... × Yₙ</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="yields">Step yields (one per line, %)</label>
+            <span class="field-hint">Enter the first-time yield (%) of each process step on a separate line. Anything between 0 and 100.</span>
+            <textarea id="yields" class="plain" placeholder="98&#10;95&#10;92&#10;99&#10;97"></textarea>
+            <span class="field-error" id="yields-err">Enter at least 2 valid yields between 0 and 100.</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F517;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Rolled Throughput Yield</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">first-time-right end-to-end</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Normalised yield</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Total defect rate</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">RTY vs world-class (99%)</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Rolled Throughput Yield</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>Why steps multiply</h4><p>The probability of a unit passing through every step defect-free is the product of each step's yield. Five steps at 95% each look fine individually but only deliver 77% RTY — a quarter of units have a defect somewhere.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>Hidden factory</h4><p>RTY exposes the "hidden factory" of rework, scrap and inspection that plant-level yield numbers usually mask. Final yield can be 99% only because rework loops are quietly catching upstream defects.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>Where to focus</h4><p>The weakest step has the biggest leverage on RTY. Lifting the worst step from 90% to 98% will improve RTY more than any other change — even tiny improvements at the worst step beat moderate ones at already-strong steps.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this rolled throughput yield calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Rolled Throughput Yield (RTY) is the probability that a single unit passes through every step of a process without defect or rework. Unlike a final-inspection yield, RTY multiplies the first-pass yield of every step in series, exposing the "hidden factory" of rework, retest and selective scrap that final yield masks. This calculator takes the first-pass yield of each step, multiplies them, and returns the cumulative RTY along with the total defect probability and the equivalent Sigma Level. A clean 95% looks good — until you discover that ten 95% steps in series produce a real first-pass yield of just 60%.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator at the Define or Measure stage of any multi-step process improvement project, before signing off a new product introduction, or any time final yield looks healthy but operators are reporting heavy rework. It is also the right tool when arguing for end-to-end DMAIC scope rather than tackling one step at a time.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">An assembly process has six steps with first-pass yields of 99%, 98%, 97%, 96%, 95% and 94%. RTY = 0.99 × 0.98 × 0.97 × 0.96 × 0.95 × 0.94 = 0.807, or 80.7%. Roughly 1 in 5 units needs rework somewhere in the line — even though every step in isolation looks "fine". Lifting just the worst step (94%) to 99% would push RTY from 80.7% to 85.0%, recovering 4.3 percentage points of margin without touching the other five steps.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the difference between RTY and final yield?</summary><p>Final yield only counts what passes the final inspection, regardless of how much rework happened along the way. RTY is the probability of a unit passing every step the first time, with no rework. RTY is always lower than final yield — and the gap is the size of your hidden factory.</p></details>
+      <details class="seo-faq-item"><summary>What is the hidden factory?</summary><p>The hidden factory is the unmeasured cost of rework, retest, sort, scrap and re-handling that lives between formal process steps. It consumes 15-30% of capacity in many manufacturing operations and almost never appears on any KPI dashboard.</p></details>
+      <details class="seo-faq-item"><summary>How do I measure first-pass yield for each step?</summary><p>Count units entering the step and units leaving without rework, repair or retest. The ratio is FPY for that step. Tracking this honestly (rather than counting reworked units as "passed") is the single biggest barrier to credible RTY numbers — and the most valuable.</p></details>
+      <details class="seo-faq-item"><summary>What is a good RTY?</summary><p>Above 95% is excellent for any multi-step process. 80-95% is typical for well-managed assemblies. Below 70% indicates either too many steps, too much rework or both, and is a strong signal to map the value stream end to end and remove or simplify steps.</p></details>
+      <details class="seo-faq-item"><summary>Where should I focus when RTY is low?</summary><p>Find the step with the largest defect contribution (the largest 1 - FPY weighted by step volume). Improving the worst step usually delivers more RTY uplift than improving any other. Plot a Pareto of step defects to make the choice obvious.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function calculate(){
+  var raw=document.getElementById('yields').value.trim();
+  var lines=raw.split(/[\n,;]+/).map(function(s){return parseFloat(s)}).filter(function(v){return !isNaN(v)&&v>=0&&v<=100});
+  var ok=lines.length>=2;
+  document.getElementById('yields').classList.toggle('error',!ok);document.getElementById('yields-err').classList.toggle('visible',!ok);
+  if(!ok)return;
+  var rty=1; lines.forEach(function(y){rty*=(y/100)});
+  var rtyPct=rty*100, normY=Math.pow(rty,1/lines.length)*100, defectRate=(1-rty)*100;
+  document.getElementById('main-value').textContent=rtyPct.toFixed(2)+'%';
+  document.getElementById('main-unit').textContent='across '+lines.length+' process steps';
+  document.getElementById('metric-a').textContent=normY.toFixed(2)+'%';
+  document.getElementById('metric-b').textContent=defectRate.toFixed(2)+'%';
+  var pacePct=Math.min(100,Math.max(2,(rtyPct/99)*100));
+  document.getElementById('pace-fill').style.width=pacePct.toFixed(1)+'%';
+  document.getElementById('pace-label-text').textContent=rtyPct>=99?'World-class':rtyPct>=90?'Strong':rtyPct>=70?'Improvable':'Hidden factory';
+  var weakIdx=0,weakest=100; lines.forEach(function(y,i){if(y<weakest){weakest=y;weakIdx=i;}});
+  var rows='<div class="breakdown-list"><div style="font-weight:700;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Per-step breakdown</div>';
+  lines.forEach(function(y,i){var w=(y).toFixed(0);var flag=i===weakIdx?' &#x26A0;&#xFE0F; weakest':'';rows+='<div class="breakdown-row"><div class="bk-label">Step '+(i+1)+flag+'</div><div class="bk-bar"><div class="bk-bar-fill" style="width:'+w+'%"></div></div><div class="bk-value">'+y.toFixed(2)+'%</div></div>';});
+  rows+='</div>';
+  document.getElementById('extra-area').innerHTML=rows;
+  var verdict=rtyPct>=99?'Outstanding RTY — this is genuine first-time-right performance. ':rtyPct>=90?'Solid RTY — most units flow through clean, but there is still room to tighten the weakest step. ':rtyPct>=70?'There is a sizeable hidden factory of rework hiding behind the final yield. ':'Less than 7 in 10 units flow through defect-free — there is significant rework happening. ';
+  document.getElementById('explanation-text').textContent=verdict+'Across '+lines.length+' steps, the cumulative RTY is '+rtyPct.toFixed(2)+'%, meaning '+defectRate.toFixed(1)+'% of units have at least one defect somewhere. The weakest step is Step '+(weakIdx+1)+' at '+weakest.toFixed(2)+'% — improving this step has the biggest impact on RTY.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){var t=document.getElementById('yields');t.value='';t.classList.remove('error');document.getElementById('yields-err').classList.remove('visible');document.getElementById('extra-area').innerHTML='';document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Confidence Interval Calculator | Mean & Proportion | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/confidenceinterval.html">
+  <meta name="description" content="Free confidence interval calculator. Compute the margin of error and bounds for a sample mean or proportion at 90, 95 or 99% confidence using exact normal-quantile maths.">
+  <meta name="keywords" content="confidence interval calculator, margin of error calculator, 95% confidence interval, sample mean CI, proportion confidence interval, statistics calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/confidenceinterval.html">
+  <meta property="og:title" content="Confidence Interval Calculator | Mean & Proportion | SimplicityHub">
+  <meta property="og:description" content="Free confidence interval calculator. Compute the margin of error and bounds for a sample mean or proportion at 90, 95 or 99% confidence using exact normal-quantile maths.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Confidence Interval Calculator | Mean & Proportion | SimplicityHub">
+  <meta name="twitter:description" content="Free confidence interval calculator. Compute the margin of error and bounds for a sample mean or proportion at 90, 95 or 99% confidence using exact normal-quantile maths.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Confidence Interval Calculator","item":"https://www.simplicityhub.co.uk/pages/confidenceinterval.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Confidence Interval Calculator","url":"https://www.simplicityhub.co.uk/pages/confidenceinterval.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free confidence interval calculator. Compute the margin of error and bounds for a sample mean or proportion at 90, 95 or 99% confidence using exact normal-quantile maths.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is a confidence interval?","acceptedAnswer":{"@type":"Answer","text":"A confidence interval is a range of values calculated from a sample that is likely to contain the true population value, with a stated confidence level (typically 95%). It is the standard way to report uncertainty around an estimate."}},{"@type":"Question","name":"What does 95% confidence actually mean?","acceptedAnswer":{"@type":"Answer","text":"It means that if you repeated the sampling and CI calculation many times, 95% of the resulting intervals would contain the true population value. It does not mean there is a 95% chance the true value is in any one specific interval — that is a common misinterpretation."}},{"@type":"Question","name":"When do I use a CI for a mean versus a proportion?","acceptedAnswer":{"@type":"Answer","text":"Use the mean mode for continuous data (heights, weights, cycle times, scores). Use the proportion mode for binary data (pass/fail, yes/no, defective/good, converted/not converted). The underlying maths is different."}},{"@type":"Question","name":"How does confidence level affect interval width?","acceptedAnswer":{"@type":"Answer","text":"Higher confidence widens the interval. Going from 95% to 99% widens the CI by about 30% on the same data. Higher confidence is not \"better\" — it is a trade-off between certainty and precision."}},{"@type":"Question","name":"How do I narrow a confidence interval?","acceptedAnswer":{"@type":"Answer","text":"The only lever is sample size. Doubling n shrinks the margin of error by about 30% (a factor of √2). Quadrupling n halves it. Reducing variability in the data also helps, but is usually outside the analyst's control."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Confidence Interval Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Confidence Interval Calculator</h1>
+        <p class="lead">Calculate confidence intervals for a mean or a proportion — choose your confidence level (90%, 95%, 99% or custom), and see the margin of error and lower and upper bounds.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">CI = x̄ ± z × (s &divide; √n)</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="mode">Mode</label>
+            <select id="mode" class="plain" onchange="onModeChange()">
+              <option value="mean" selected>Mean (sample mean and SD)</option>
+              <option value="prop">Proportion (successes and sample size)</option>
+            </select>
+          </div>
+          <div class="field" id="f-mean">
+            <label for="mean">Sample mean</label>
+            <input type="number" id="mean" class="plain" placeholder="e.g. 50" step="any">
+            <span class="field-error" id="mean-err">Enter a valid sample mean.</span>
+          </div>
+          <div class="field" id="f-sd">
+            <label for="sd">Sample standard deviation</label>
+            <input type="number" id="sd" class="plain" placeholder="e.g. 8" min="0" step="any">
+            <span class="field-error" id="sd-err">Enter a valid SD (greater than 0).</span>
+          </div>
+          <div class="field" id="f-prop" style="display:none">
+            <label for="successes">Successes</label>
+            <input type="number" id="successes" class="plain" placeholder="e.g. 320" min="0" step="1">
+            <span class="field-error" id="successes-err">Enter a valid count of successes.</span>
+          </div>
+          <div class="field">
+            <label for="n">Sample size (n)</label>
+            <input type="number" id="n" class="plain" placeholder="e.g. 100" min="1" step="1">
+            <span class="field-error" id="n-err">Enter a sample size of at least 2.</span>
+          </div>
+          <div class="field">
+            <label for="conf">Confidence level (%)</label>
+            <input type="number" id="conf" class="plain" placeholder="e.g. 95" min="50" max="99.99" step="any" value="95">
+            <span class="field-error" id="conf-err">Enter a confidence level between 50 and 99.99.</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4CF;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Margin of error</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">±</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Lower bound</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Upper bound</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">Confidence width</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Confidence Interval</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>What a CI tells you</h4><p>A 95% confidence interval gives you the range that the true population value is likely to fall within, with 95% confidence. Wider intervals mean more uncertainty; narrower intervals mean more precision — but require larger sample sizes.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>Mean vs proportion</h4><p>For continuous data (heights, weights, cycle times) use the mean mode. For pass/fail or yes/no data (defective rate, conversion rate, customer satisfaction %) use the proportion mode — the maths is different.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>The cost of confidence</h4><p>Going from 95% to 99% confidence widens your interval by about 30% — meaning more uncertainty for the same data. To narrow the interval, the only lever is sample size: doubling n cuts the margin of error by about 30%.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this confidence interval calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">A confidence interval is a range that is likely to contain the true population parameter, given a sample drawn from that population. A 95% confidence interval means: if we repeated the sampling many times, 95% of the resulting intervals would capture the true value. This calculator handles both modes — a confidence interval for a mean (using the sample mean and sample standard deviation) and a confidence interval for a proportion (using the count of successes and the sample size). Set any confidence level between 50% and 99.99% and the tool returns the margin of error, the lower bound, the upper bound, and a width indicator showing how precise the estimate is.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator whenever you have a sample-based estimate and need to communicate its uncertainty: customer satisfaction surveys, defect-rate samples, conversion-rate tests, audit results, batch testing, or any A/B comparison. It is also the right tool when stakeholders treat a single survey number as exact — the CI puts honest bounds on it.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A survey of 100 customers gives a mean satisfaction score of 50 with sample SD of 8. At 95% confidence, the margin of error is 1.96 × 8 ÷ √100 = 1.568. The 95% CI is 48.43 to 51.57. To halve that margin you would need roughly four times the sample size (n = 400). For a proportion: 320 conversions in 1000 visitors gives p = 32% with a 95% CI of roughly 29.1% to 34.9%.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is a confidence interval?</summary><p>A confidence interval is a range of values calculated from a sample that is likely to contain the true population value, with a stated confidence level (typically 95%). It is the standard way to report uncertainty around an estimate.</p></details>
+      <details class="seo-faq-item"><summary>What does 95% confidence actually mean?</summary><p>It means that if you repeated the sampling and CI calculation many times, 95% of the resulting intervals would contain the true population value. It does not mean there is a 95% chance the true value is in any one specific interval — that is a common misinterpretation.</p></details>
+      <details class="seo-faq-item"><summary>When do I use a CI for a mean versus a proportion?</summary><p>Use the mean mode for continuous data (heights, weights, cycle times, scores). Use the proportion mode for binary data (pass/fail, yes/no, defective/good, converted/not converted). The underlying maths is different.</p></details>
+      <details class="seo-faq-item"><summary>How does confidence level affect interval width?</summary><p>Higher confidence widens the interval. Going from 95% to 99% widens the CI by about 30% on the same data. Higher confidence is not "better" — it is a trade-off between certainty and precision.</p></details>
+      <details class="seo-faq-item"><summary>How do I narrow a confidence interval?</summary><p>The only lever is sample size. Doubling n shrinks the margin of error by about 30% (a factor of √2). Quadrupling n halves it. Reducing variability in the data also helps, but is usually outside the analyst's control.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function zForConf(c){var p=1-(1-c/100)/2;return invNormal(p)}
+function invNormal(p){var a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];var b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];var c2=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];var d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];var pl=0.02425,ph=1-pl,q,r;if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c2[0]*q+c2[1])*q+c2[2])*q+c2[3])*q+c2[4])*q+c2[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}if(p<=ph){q=p-0.5;r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)}q=Math.sqrt(-2*Math.log(1-p));return -(((((c2[0]*q+c2[1])*q+c2[2])*q+c2[3])*q+c2[4])*q+c2[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1)}
+function onModeChange(){var m=document.getElementById('mode').value;document.getElementById('f-mean').style.display=m==='mean'?'':'none';document.getElementById('f-sd').style.display=m==='mean'?'':'none';document.getElementById('f-prop').style.display=m==='prop'?'':'none';document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display='';}
+function calculate(){
+  var mode=document.getElementById('mode').value, n=parseFloat(document.getElementById('n').value), conf=parseFloat(document.getElementById('conf').value);
+  var nOk=!isNaN(n)&&n>=2, cOk=!isNaN(conf)&&conf>=50&&conf<99.999;
+  document.getElementById('n').classList.toggle('error',!nOk);document.getElementById('n-err').classList.toggle('visible',!nOk);
+  document.getElementById('conf').classList.toggle('error',!cOk);document.getElementById('conf-err').classList.toggle('visible',!cOk);
+  var lo, hi, est, moe, label, unit;
+  if(mode==='mean'){
+    var mean=parseFloat(document.getElementById('mean').value),sd=parseFloat(document.getElementById('sd').value);
+    var mOk=!isNaN(mean), sdOk=!isNaN(sd)&&sd>0;
+    document.getElementById('mean').classList.toggle('error',!mOk);document.getElementById('mean-err').classList.toggle('visible',!mOk);
+    document.getElementById('sd').classList.toggle('error',!sdOk);document.getElementById('sd-err').classList.toggle('visible',!sdOk);
+    if(!mOk||!sdOk||!nOk||!cOk)return;
+    var z=zForConf(conf); moe=z*sd/Math.sqrt(n); est=mean; lo=mean-moe; hi=mean+moe;
+    label='Confidence interval for the mean'; unit='± around the mean';
+  } else {
+    var x=parseFloat(document.getElementById('successes').value);
+    var xOk=!isNaN(x)&&x>=0&&x<=n;
+    document.getElementById('successes').classList.toggle('error',!xOk);document.getElementById('successes-err').classList.toggle('visible',!xOk);
+    if(!xOk||!nOk||!cOk)return;
+    var p=x/n, z2=zForConf(conf); moe=z2*Math.sqrt(p*(1-p)/n); est=p; lo=Math.max(0,p-moe); hi=Math.min(1,p+moe);
+    label='Confidence interval for the proportion'; unit='± around the proportion';
+    moe=moe; /* keep as proportion */
+  }
+  document.getElementById('result-label')||0;
+  document.getElementById('main-value').textContent=mode==='prop'?(moe*100).toFixed(2)+'%':'±'+moe.toFixed(3);
+  document.getElementById('main-unit').textContent=unit;
+  document.getElementById('metric-a').textContent=mode==='prop'?(lo*100).toFixed(2)+'%':lo.toFixed(3);
+  document.getElementById('metric-b').textContent=mode==='prop'?(hi*100).toFixed(2)+'%':hi.toFixed(3);
+  /* Width vs example: 1=narrow */
+  var width=mode==='prop'?(hi-lo)*100:(hi-lo)/Math.max(0.0001,Math.abs(est)||1);
+  var pacePct=Math.max(8,Math.min(100,100-width*5));
+  document.getElementById('pace-fill').style.width=pacePct.toFixed(1)+'%';
+  document.getElementById('pace-label-text').textContent=mode==='prop'?'Width: '+((hi-lo)*100).toFixed(2)+'%':'Width: '+(hi-lo).toFixed(3);
+  document.getElementById('explanation-text').textContent='At '+conf.toFixed(1)+'% confidence, the true '+(mode==='prop'?'population proportion':'population mean')+' is estimated to lie between '+(mode==='prop'?(lo*100).toFixed(2)+'% and '+(hi*100).toFixed(2)+'%':lo.toFixed(3)+' and '+hi.toFixed(3))+' — with point estimate of '+(mode==='prop'?(est*100).toFixed(2)+'%':est.toFixed(3))+'. To narrow this interval, increase the sample size: doubling n shrinks the margin of error by about 30%.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){['mean','sd','successes','n','conf'].forEach(function(id){var i=document.getElementById(id);if(i){i.value=id==='conf'?'95':'';i.classList.remove('error')}});['mean-err','sd-err','successes-err','n-err','conf-err'].forEach(function(id){document.getElementById(id).classList.remove('visible')});document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+function updateResultUnit(){if(document.getElementById('result-panel').classList.contains('visible'))calculate()}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>

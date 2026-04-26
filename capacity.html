@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Production Capacity Calculator | OEE-Adjusted | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/capacity.html">
+  <meta name="description" content="Free production capacity calculator. Convert available time, cycle time and OEE into realistic units per shift, day and year, and compare against demand to find capacity gaps.">
+  <meta name="keywords" content="production capacity calculator, OEE capacity, units per shift calculator, manufacturing capacity planning, lean capacity tool, capacity vs demand">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/capacity.html">
+  <meta property="og:title" content="Production Capacity Calculator | OEE-Adjusted | SimplicityHub">
+  <meta property="og:description" content="Free production capacity calculator. Convert available time, cycle time and OEE into realistic units per shift, day and year, and compare against demand to find capacity gaps.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Production Capacity Calculator | OEE-Adjusted | SimplicityHub">
+  <meta name="twitter:description" content="Free production capacity calculator. Convert available time, cycle time and OEE into realistic units per shift, day and year, and compare against demand to find capacity gaps.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Production Capacity Calculator","item":"https://www.simplicityhub.co.uk/pages/capacity.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Production Capacity Calculator","url":"https://www.simplicityhub.co.uk/pages/capacity.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free production capacity calculator. Convert available time, cycle time and OEE into realistic units per shift, day and year, and compare against demand to find capacity gaps.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is production capacity?","acceptedAnswer":{"@type":"Answer","text":"Production capacity is the maximum output a process can sustainably deliver in a given time period. The realistic figure is theoretical capacity multiplied by OEE, expressed in good units per shift, day, week or year."}},{"@type":"Question","name":"How does OEE affect capacity?","acceptedAnswer":{"@type":"Answer","text":"OEE captures the three real-world losses — availability, performance and quality — that prevent a process from achieving its theoretical maximum. A line with 85% OEE delivers 41% more capacity than one with 60% OEE running on the same equipment."}},{"@type":"Question","name":"What is the difference between theoretical and realistic capacity?","acceptedAnswer":{"@type":"Answer","text":"Theoretical capacity assumes zero downtime, zero defects and the ideal cycle time. Realistic capacity adjusts that figure by OEE to reflect actual losses. Quoting customers from theoretical capacity is the most common cause of broken delivery promises."}},{"@type":"Question","name":"How do you calculate annual capacity?","acceptedAnswer":{"@type":"Answer","text":"Multiply realistic per-shift capacity by the number of shifts per day, then by the number of working days per year (typically 250 in the UK after weekends and bank holidays). This calculator does the per-day and per-year maths automatically."}},{"@type":"Question","name":"Should I add a shift or improve OEE?","acceptedAnswer":{"@type":"Answer","text":"Improving OEE is almost always cheaper. A 10-point OEE lift adds the same capacity as a third of a shift but with no extra labour, energy or supervision cost — and reduces cost-per-unit at the same time."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Production Capacity Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Lean &amp; Planning</div>
+        <h1>Production Capacity Calculator</h1>
+        <p class="lead">Translate available time, cycle time and OEE into a realistic units-per-shift, day, week and year capacity figure — so you know whether your process can meet forecasted demand.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">Capacity = (Available Time ÷ Cycle Time) × OEE</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="avail">Available production time per shift</label>
+            <span class="field-hint">Net time available after planned breaks and changeovers</span>
+            <div class="input-with-unit" id="avail-wrap">
+              <input type="number" id="avail" placeholder="e.g. 8" min="0" step="any">
+              <select class="unit-select" id="avail-unit">
+                <option value="minutes">minutes</option>
+                <option value="hours" selected>hours</option>
+              </select>
+            </div>
+            <span class="field-error" id="avail-err">Enter a valid time.</span>
+          </div>
+          <div class="field">
+            <label for="cycle">Cycle time per unit</label>
+            <span class="field-hint">Average time taken to produce one unit</span>
+            <div class="input-with-unit" id="cycle-wrap">
+              <input type="number" id="cycle" placeholder="e.g. 60" min="0" step="any">
+              <select class="unit-select" id="cycle-unit">
+                <option value="seconds" selected>seconds</option>
+                <option value="minutes">minutes</option>
+              </select>
+            </div>
+            <span class="field-error" id="cycle-err">Enter a valid cycle time.</span>
+          </div>
+          <div class="field">
+            <label for="oee">OEE (%)</label>
+            <span class="field-hint">Overall Equipment Effectiveness — typically 60-85% for most processes; 85%+ is world-class</span>
+            <input type="number" id="oee" class="plain" placeholder="e.g. 75" min="0" max="100" step="any">
+            <span class="field-error" id="oee-err">Enter OEE between 0 and 100.</span>
+          </div>
+          <div class="field">
+            <label for="demand">Demand per day (optional)</label>
+            <span class="field-hint">If you know your daily demand, enter it to see whether capacity covers it</span>
+            <input type="number" id="demand" class="plain" placeholder="e.g. 400" min="0" step="any">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4E6;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Capacity per shift</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">units</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Per day (1 shift)</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Per year (250 days)</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">Capacity vs demand</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Production Capacity</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>Theoretical vs realistic</h4><p>Dividing available time by cycle time gives theoretical capacity. Multiplying by OEE adjusts for real-world losses — downtime, slow running and quality defects — to give a realistic, dependable capacity figure.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>OEE is the lever</h4><p>You can usually lift capacity faster by improving OEE than by adding shifts or buying machines. Lift OEE from 60% to 75% and you've added 25% capacity at zero capital cost — and reduced cost-per-unit at the same time.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>Match capacity to demand</h4><p>If capacity is well above demand, you have headroom but may be over-resourced. If capacity is below demand, you have a capacity gap that needs improvement, extra shifts, or new equipment. The capacity-vs-demand check tells you which situation you're in.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this production capacity calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Production capacity is how many good units a process can realistically deliver in a given time window. The naïve formula — available time divided by cycle time — gives the theoretical maximum, but every real process loses output to downtime, micro-stops, slow running and quality defects. This calculator multiplies the theoretical figure by OEE (Overall Equipment Effectiveness) to give a realistic, dependable capacity in units per shift, per day and per year. If you also enter your daily demand, the tool tells you whether you have headroom, are just covering it, or have a capacity gap.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator whenever you are quoting customer lead times, deciding whether to add a shift, costing a new product, planning a peak-season ramp, or building the business case for an OEE improvement programme. It is also the right tool when sales asks "can we take on this contract?" and you need a defensible answer in the next ten minutes.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A packaging line has 8 hours of available time per shift, a 60-second cycle time and runs at 75% OEE. Theoretical capacity = 8 × 3600 ÷ 60 = 480 units. Realistic capacity = 480 × 0.75 = 360 units per shift. If demand is 400 units per day on a single shift, you have a capacity gap of 40 units (90% coverage) — and lifting OEE from 75% to 85% would close it without adding people or machines.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is production capacity?</summary><p>Production capacity is the maximum output a process can sustainably deliver in a given time period. The realistic figure is theoretical capacity multiplied by OEE, expressed in good units per shift, day, week or year.</p></details>
+      <details class="seo-faq-item"><summary>How does OEE affect capacity?</summary><p>OEE captures the three real-world losses — availability, performance and quality — that prevent a process from achieving its theoretical maximum. A line with 85% OEE delivers 41% more capacity than one with 60% OEE running on the same equipment.</p></details>
+      <details class="seo-faq-item"><summary>What is the difference between theoretical and realistic capacity?</summary><p>Theoretical capacity assumes zero downtime, zero defects and the ideal cycle time. Realistic capacity adjusts that figure by OEE to reflect actual losses. Quoting customers from theoretical capacity is the most common cause of broken delivery promises.</p></details>
+      <details class="seo-faq-item"><summary>How do you calculate annual capacity?</summary><p>Multiply realistic per-shift capacity by the number of shifts per day, then by the number of working days per year (typically 250 in the UK after weekends and bank holidays). This calculator does the per-day and per-year maths automatically.</p></details>
+      <details class="seo-faq-item"><summary>Should I add a shift or improve OEE?</summary><p>Improving OEE is almost always cheaper. A 10-point OEE lift adds the same capacity as a third of a shift but with no extra labour, energy or supervision cost — and reduces cost-per-unit at the same time.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function toSec(v,u){return u==='seconds'?v:u==='minutes'?v*60:v*3600}
+function calculate(){
+  var av=parseFloat(document.getElementById('avail').value),cy=parseFloat(document.getElementById('cycle').value),oe=parseFloat(document.getElementById('oee').value),dm=parseFloat(document.getElementById('demand').value);
+  var avU=document.getElementById('avail-unit').value, cyU=document.getElementById('cycle-unit').value;
+  var avOk=!isNaN(av)&&av>0, cyOk=!isNaN(cy)&&cy>0, oeOk=!isNaN(oe)&&oe>0&&oe<=100;
+  document.getElementById('avail-wrap').classList.toggle('error',!avOk);document.getElementById('avail-err').classList.toggle('visible',!avOk);
+  document.getElementById('cycle-wrap').classList.toggle('error',!cyOk);document.getElementById('cycle-err').classList.toggle('visible',!cyOk);
+  document.getElementById('oee').classList.toggle('error',!oeOk);document.getElementById('oee-err').classList.toggle('visible',!oeOk);
+  if(!avOk||!cyOk||!oeOk)return;
+  var avS=toSec(av,avU), cyS=toSec(cy,cyU), perShift=(avS/cyS)*(oe/100);
+  document.getElementById('main-value').textContent=perShift.toFixed(0);
+  document.getElementById('metric-a').textContent=perShift.toFixed(0)+' units';
+  document.getElementById('metric-b').textContent=(perShift*250).toLocaleString(undefined,{maximumFractionDigits:0})+' units';
+  var pacePct=70, ptxt='No demand entered', verdict;
+  if(!isNaN(dm)&&dm>0){
+    var coverage=(perShift/dm)*100;
+    pacePct=Math.max(6,Math.min(100,coverage));
+    if(coverage>=120)ptxt='Headroom ('+coverage.toFixed(0)+'% of demand)';
+    else if(coverage>=100)ptxt='Just enough';
+    else ptxt='Capacity gap ('+coverage.toFixed(0)+'% of demand)';
+    verdict=coverage>=100? 'Capacity covers demand with '+(coverage-100).toFixed(0)+'% headroom. ':'Capacity is short of demand by '+(100-coverage).toFixed(0)+'% — you need to lift OEE, reduce cycle time, or add shifts. ';
+  } else {
+    verdict='At '+oe.toFixed(0)+'% OEE, this process delivers '+perShift.toFixed(0)+' units per shift. ';
+  }
+  document.getElementById('pace-fill').style.width=pacePct.toFixed(1)+'%';
+  document.getElementById('pace-label-text').textContent=ptxt;
+  document.getElementById('explanation-text').textContent=verdict+'Theoretical capacity (without losses) would be '+(avS/cyS).toFixed(0)+' units per shift. OEE losses reduce this to a realistic '+perShift.toFixed(0)+' units. Lifting OEE by 10 points would add roughly '+((avS/cyS)*0.10).toFixed(0)+' units per shift at no extra capital cost.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){['avail','cycle','oee','demand'].forEach(function(id){document.getElementById(id).value=''});['avail-wrap','cycle-wrap'].forEach(function(id){document.getElementById(id).classList.remove('error')});document.getElementById('oee').classList.remove('error');['avail-err','cycle-err','oee-err'].forEach(function(id){document.getElementById(id).classList.remove('visible')});document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+function updateResultUnit(){if(document.getElementById('result-panel').classList.contains('visible'))calculate()}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>

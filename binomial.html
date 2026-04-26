@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Binomial Distribution Calculator | Probability | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7;--muted:#b8c0cc;--line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;--shadow:0 20px 50px rgba(0,0,0,.35);--max:1240px;
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at left 30%,rgba(216,255,58,.08),transparent 24%),
+    linear-gradient(180deg,#05070b 0%,#07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;transition:width .25s}
+  nav a:hover::after,nav a.active::after{width:100%}nav a.active{color:var(--accent)}
+
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}.breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:13px;font-weight:700;color:var(--accent);font-family:monospace;letter-spacing:.02em;line-height:2.2}
+
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .panel-sub{font-size:14px;color:var(--muted);margin:0 0 24px}
+
+  .mode-tabs{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:4px;gap:4px;margin-bottom:24px}
+  .mode-tab{flex:1;padding:10px 6px;border-radius:12px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s,color .2s;color:var(--muted);background:transparent;text-align:center;line-height:1.4}
+  .mode-tab.active{background:rgba(216,255,58,.15);color:var(--accent);border:1px solid rgba(216,255,58,.3)}
+  .mode-panel{display:none}.mode-panel.active{display:block}
+
+  .field-group{display:flex;flex-direction:column;gap:18px;margin-bottom:26px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input,.field select{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:14px 16px;font-size:16px;font-family:inherit;outline:none;transition:border-color .2s;-moz-appearance:textfield}
+  .field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input::placeholder{color:#4d5766}
+  .field input:focus,.field select:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.error{border-color:rgba(255,90,90,.5)}
+  .field select option{background:#0d1524}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  /* shared inputs block */
+  .shared-inputs{background:rgba(216,255,58,.03);border:1px solid rgba(216,255,58,.10);border-radius:18px;padding:20px;margin-bottom:20px}
+  .shared-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(216,255,58,.6);margin-bottom:14px}
+
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* Results */
+  .empty-state{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;padding:36px;border-bottom:none}
+
+  /* Probability display */
+  .prob-block{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:22px;padding:26px 28px;margin-bottom:18px}
+  .prob-label{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .prob-notation{font-family:monospace;font-size:13px;color:rgba(216,255,58,.7);margin-bottom:10px;font-weight:700}
+  .prob-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .prob-value{font-size:clamp(48px,7vw,72px);font-weight:900;letter-spacing:-.04em;line-height:1;color:var(--accent)}
+  .prob-pct{font-size:24px;font-weight:700;color:var(--muted);padding-bottom:8px}
+  .prob-bar-wrap{flex:1;min-width:120px;padding-bottom:8px}
+  .prob-bar-track{width:100%;height:10px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-top:4px}
+  .prob-bar-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+  .prob-bar-label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}
+
+  /* Details */
+  .details-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .detail-box{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:center}
+  .detail-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .detail-value{font-size:15px;font-weight:900}
+  .detail-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+  /* Multi-probability row (for cumulative) */
+  .prob-multi{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .prob-mini{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center}
+  .prob-mini-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .prob-mini-notation{font-size:11px;font-family:monospace;color:rgba(216,255,58,.6);margin-bottom:4px}
+  .prob-mini-val{font-size:22px;font-weight:900;color:var(--text)}
+
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:18px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* Chart + table */
+  .chart-table-wrap{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px}
+  .chart-section,.table-section{display:none}
+  .chart-section.visible,.table-section.visible{display:block}
+  .chart-panel,.table-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top right,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:32px}
+  .chart-title{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .chart-wrap{position:relative;width:100%;height:280px}
+
+  /* Distribution table */
+  .dist-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:0}
+  .dist-table th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  .dist-table td{padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);font-weight:600}
+  .dist-table tr:last-child td{border-bottom:none}
+  .dist-table tr.highlight td{background:rgba(216,255,58,.08);color:var(--accent)}
+  .dist-table tr.highlight-range td{background:rgba(58,159,255,.06);color:#3a9fff}
+  .table-wrap{max-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent}
+  .table-wrap::-webkit-scrollbar{width:4px}
+  .table-wrap::-webkit-scrollbar-track{background:transparent}
+  .table-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px}
+  .table-note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+
+  /* Improve */
+  .improve-section{display:none;padding:0 0 48px}
+  .improve-section.visible{display:block}
+  .improve-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at bottom left,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+  .rec-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
+  .rec-head{font-size:15px;font-weight:800;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;margin-bottom:14px;flex-shrink:0}
+  .how-card h4{font-size:17px;font-weight:800;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}.footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg,#05070b 0%,#07101d 100%);color:#b8c0cc;font-size:17px;font-family:inherit}
+
+  @media(max-width:900px){
+    .calc-layout,.chart-table-wrap,.how-grid,.details-grid,.rec-grid,.field-row,.prob-multi{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}.formula-badge{display:none}
+    .details-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max),calc(100% - 28px))}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/binomial.html">
+  <meta name="description" content="Free binomial distribution calculator. Enter n, p and k to get exact, cumulative and tail probabilities for a binomial random variable, with mean, variance and SD.">
+  <meta name="keywords" content="binomial distribution calculator, binomial probability, n choose k calculator, binomial mean variance, defect probability calculator, attribute sampling">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/binomial.html">
+  <meta property="og:title" content="Binomial Distribution Calculator | Probability | SimplicityHub">
+  <meta property="og:description" content="Free binomial distribution calculator. Enter n, p and k to get exact, cumulative and tail probabilities for a binomial random variable, with mean, variance and SD.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Binomial Distribution Calculator | Probability | SimplicityHub">
+  <meta name="twitter:description" content="Free binomial distribution calculator. Enter n, p and k to get exact, cumulative and tail probabilities for a binomial random variable, with mean, variance and SD.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Binomial Distribution Calculator","item":"https://www.simplicityhub.co.uk/pages/binomial.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Binomial Distribution Calculator","url":"https://www.simplicityhub.co.uk/pages/binomial.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free binomial distribution calculator. Enter n, p and k to get exact, cumulative and tail probabilities for a binomial random variable, with mean, variance and SD.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"When does the binomial distribution apply?","acceptedAnswer":{"@type":"Answer","text":"When you have (1) a fixed number of trials n, (2) only two outcomes per trial — success or failure, (3) constant probability of success p across trials, and (4) independence between trials. Most attribute sampling problems satisfy these assumptions to a useful approximation."}},{"@type":"Question","name":"What are the mean and variance of a binomial distribution?","acceptedAnswer":{"@type":"Answer","text":"Mean = n × p. Variance = n × p × (1-p). Standard deviation is the square root of the variance. For n = 100, p = 0.05, mean = 5, variance = 4.75, SD ≈ 2.18 — so the realistic range of outcomes spans roughly 0-12 defects despite the long-run mean of 5."}},{"@type":"Question","name":"When can I use the normal approximation?","acceptedAnswer":{"@type":"Answer","text":"The normal approximation is reasonable when both n × p ≥ 5 and n × (1-p) ≥ 5. Below those thresholds, especially for low p, use the exact binomial or the Poisson approximation. Reaching for the normal too early underestimates tail probabilities — exactly where defect risk lives."}},{"@type":"Question","name":"How does the binomial differ from the Poisson?","acceptedAnswer":{"@type":"Answer","text":"Binomial counts successes in a fixed number of trials with a known probability. Poisson counts events in a fixed window of time, area or opportunity, with a known average rate. The Poisson is the limit of the binomial as n grows large and p shrinks, with n × p held constant."}},{"@type":"Question","name":"What is acceptance sampling and how does the binomial fit in?","acceptedAnswer":{"@type":"Answer","text":"Acceptance sampling decides whether to accept or reject a lot based on a small inspected sample. The binomial is the underlying probability model: given an assumed defect rate p, it tells you the probability of seeing at most k defects in a sample of n — which is exactly what an OC curve plots."}}]}</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a><a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a><a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a><a href="about.html">About</a>
+      <a href="contact.html">Contact</a><a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Binomial Distribution Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Binomial Distribution Calculator</h1>
+        <p class="lead">Calculate exact and cumulative binomial probabilities for pass/fail processes — with a full probability mass function chart, distribution table, and Six Sigma acceptance sampling context.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Core formula</div>
+        <div class="formula-text">
+          P(X=k) = C(n,k) &sdot; p<sup>k</sup> &sdot; (1&minus;p)<sup>n&minus;k</sup><br>
+          C(n,k) = n! / [k!(n&minus;k)!]<br>
+          &mu; = np &nbsp;&nbsp; &sigma; = &radic;[np(1&minus;p)]
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <div class="panel">
+        <h2 class="panel-title">Enter your parameters</h2>
+        <p class="panel-sub">Define the distribution, then choose the probability type to calculate.</p>
+
+        <!-- Shared: n and p -->
+        <div class="shared-inputs">
+          <div class="shared-label">Distribution parameters</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="n-in">Number of trials (n)</label>
+              <span class="field-hint">Sample size — up to 1000</span>
+              <input type="number" id="n-in" placeholder="e.g. 20" min="1" max="1000" step="1">
+              <span class="field-error" id="n-err">Enter a whole number from 1 to 1000.</span>
+            </div>
+            <div class="field">
+              <label for="p-in">Probability of success (p)</label>
+              <span class="field-hint">Defect rate per trial (0 to 1)</span>
+              <input type="number" id="p-in" placeholder="e.g. 0.05" step="any" min="0" max="1">
+              <span class="field-error" id="p-err">Enter a probability between 0 and 1.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode tabs -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tab-exact"  onclick="setMode('exact')">Exact<br>P(X = k)</button>
+          <button class="mode-tab" id="tab-cum"   onclick="setMode('cum')">Cumulative<br>P(X &le; k)</button>
+          <button class="mode-tab" id="tab-range" onclick="setMode('range')">Range<br>P(a &le; X &le; b)</button>
+        </div>
+
+        <!-- Mode: Exact -->
+        <div class="mode-panel active" id="panel-exact">
+          <div class="field-group">
+            <div class="field">
+              <label for="k-exact">Number of successes (k)</label>
+              <span class="field-hint">The exact number of successes you want the probability for</span>
+              <input type="number" id="k-exact" placeholder="e.g. 2" min="0" step="1">
+              <span class="field-error" id="k-exact-err">Enter a whole number k between 0 and n.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode: Cumulative -->
+        <div class="mode-panel" id="panel-cum">
+          <div class="field-group">
+            <div class="field">
+              <label for="k-cum">Number of successes (k)</label>
+              <span class="field-hint">Calculates P(X &le; k) and P(X &ge; k) simultaneously</span>
+              <input type="number" id="k-cum" placeholder="e.g. 3" min="0" step="1">
+              <span class="field-error" id="k-cum-err">Enter a whole number k between 0 and n.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode: Range -->
+        <div class="mode-panel" id="panel-range">
+          <div class="field-group">
+            <div class="field-row">
+              <div class="field">
+                <label for="a-range">Lower bound (a)</label>
+                <span class="field-hint">Minimum successes (inclusive)</span>
+                <input type="number" id="a-range" placeholder="e.g. 2" min="0" step="1">
+                <span class="field-error" id="a-range-err">Enter a valid lower bound.</span>
+              </div>
+              <div class="field">
+                <label for="b-range">Upper bound (b)</label>
+                <span class="field-hint">Maximum successes (inclusive)</span>
+                <input type="number" id="b-range" placeholder="e.g. 5" min="0" step="1">
+                <span class="field-error" id="b-range-err">Enter a valid upper bound &ge; a.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F3B2;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter the number of trials, probability of success, and your target number of successes — then choose exact, cumulative, or range probability.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+
+            <div class="prob-block">
+              <div class="prob-label" id="prob-label">Probability</div>
+              <div class="prob-notation" id="prob-notation"></div>
+              <div class="prob-row">
+                <div>
+                  <div class="prob-value" id="prob-value">—</div>
+                </div>
+                <div class="prob-pct" id="prob-pct"></div>
+                <div class="prob-bar-wrap">
+                  <div class="prob-bar-label" id="prob-bar-label"></div>
+                  <div class="prob-bar-track"><div class="prob-bar-fill" id="prob-bar-fill" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="prob-multi" id="prob-multi" style="display:none"></div>
+
+            <div class="details-grid" id="details-grid"></div>
+
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart + Table -->
+    <div class="chart-table-wrap">
+      <div class="chart-section" id="chart-section">
+        <div class="chart-panel">
+          <div class="chart-title">Probability Mass Function</div>
+          <div class="chart-subtitle" id="chart-subtitle">Binomial B(n, p) — bar height = P(X = k)</div>
+          <div class="chart-wrap"><canvas id="pmf-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="table-section" id="table-section">
+        <div class="table-panel">
+          <div class="chart-title">Distribution Table</div>
+          <div class="chart-subtitle" id="table-subtitle">Probability for each possible outcome</div>
+          <div class="table-wrap">
+            <table class="dist-table" id="dist-table">
+              <thead><tr><th>k</th><th>P(X=k)</th><th>P(X&le;k)</th><th>P(X&ge;k)</th></tr></thead>
+              <tbody id="dist-body"></tbody>
+            </table>
+          </div>
+          <div class="table-note" id="table-note"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">Practical Guidance</div>
+      <div class="improve-sub">How to apply binomial probabilities in quality and Six Sigma contexts</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 28px">The binomial distribution explained</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">PMF</div>
+        <h4>Probability mass function</h4>
+        <p>P(X=k) = C(n,k) &sdot; p&sup2; &sdot; (1&minus;p)^(n&minus;k). This gives the probability of exactly k successes (or defects) in n independent trials when each trial has probability p of success. The binomial requires: fixed n, independent trials, constant p, binary outcomes.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">CDF</div>
+        <h4>Cumulative probabilities</h4>
+        <p>P(X &le; k) is the sum of all PMF values from 0 to k — the probability of at most k successes. P(X &ge; k) = 1 &minus; P(X &le; k&minus;1). These are essential for acceptance sampling decisions: "what is the probability of accepting a lot with c or fewer defects?"</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">6&sigma;</div>
+        <h4>Six Sigma applications</h4>
+        <p>Attribute sampling uses the binomial to evaluate acceptance plans. If you inspect n items from a lot with defect rate p, the probability of finding k or fewer defects is P(X &le; k). Setting k=0 gives the c=0 plan probability. Compare this to the producer's risk (&alpha;) and consumer's risk (&beta;) to evaluate plan quality.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this binomial distribution calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">The binomial distribution describes the number of successes in n independent trials, each with the same probability of success p. It is the foundation of attribute sampling, defect-rate calculations, and almost every yes/no quality decision. This calculator takes the three inputs (n, p and k), and returns the exact probability of exactly k successes, the cumulative probability of k or fewer successes, the upper-tail probability of k or more, the mean (n × p), variance (n × p × (1-p)) and standard deviation. It also plots the probability mass function so you can see whether the distribution is skewed, near-symmetric, or so close to a Z-distribution that the normal approximation could be used.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator any time you have a fixed number of independent trials with a constant success/failure probability: acceptance sampling plans, conversion-rate forecasting, defect-occurrence probability, tolerance interval calculations, or simulating outcomes for a project decision. It is also the right tool when sizing an attribute sampling plan ("how many can I inspect and still see at least one defect?").</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A process has a 2% defect rate. In a sample of n = 100 units, what is the probability of finding at least 3 defects? n = 100, p = 0.02, k = 3. P(X ≥ 3) = 1 - P(X ≤ 2) = 1 - (0.1326 + 0.2707 + 0.2734) = 1 - 0.6767 = 0.3233. So there is about a 32% chance of seeing 3+ defects in 100 units even though the long-run rate is only 2% — a single sample is noisier than people expect, and is the reason single-shot judgements about defect rates are so often wrong.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>When does the binomial distribution apply?</summary><p>When you have (1) a fixed number of trials n, (2) only two outcomes per trial — success or failure, (3) constant probability of success p across trials, and (4) independence between trials. Most attribute sampling problems satisfy these assumptions to a useful approximation.</p></details>
+      <details class="seo-faq-item"><summary>What are the mean and variance of a binomial distribution?</summary><p>Mean = n × p. Variance = n × p × (1-p). Standard deviation is the square root of the variance. For n = 100, p = 0.05, mean = 5, variance = 4.75, SD ≈ 2.18 — so the realistic range of outcomes spans roughly 0-12 defects despite the long-run mean of 5.</p></details>
+      <details class="seo-faq-item"><summary>When can I use the normal approximation?</summary><p>The normal approximation is reasonable when both n × p ≥ 5 and n × (1-p) ≥ 5. Below those thresholds, especially for low p, use the exact binomial or the Poisson approximation. Reaching for the normal too early underestimates tail probabilities — exactly where defect risk lives.</p></details>
+      <details class="seo-faq-item"><summary>How does the binomial differ from the Poisson?</summary><p>Binomial counts successes in a fixed number of trials with a known probability. Poisson counts events in a fixed window of time, area or opportunity, with a known average rate. The Poisson is the limit of the binomial as n grows large and p shrinks, with n × p held constant.</p></details>
+      <details class="seo-faq-item"><summary>What is acceptance sampling and how does the binomial fit in?</summary><p>Acceptance sampling decides whether to accept or reject a lot based on a small inspected sample. The binomial is the underlying probability model: given an assumed defect rate p, it tells you the probability of seeing at most k defects in a sample of n — which is exactly what an OC curve plots.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+var currentMode='exact';
+var pmfChart=null;
+
+function setMode(m){
+  currentMode=m;
+  ['exact','cum','range'].forEach(function(id){
+    document.getElementById('tab-'+id).className='mode-tab'+(id===m?' active':'');
+    document.getElementById('panel-'+id).className='mode-panel'+(id===m?' active':'');
+  });
+}
+
+/* ── Validate ── */
+function validate(id,errId,cond,msg){
+  var el=document.getElementById(id),err=document.getElementById(errId);
+  var v=parseFloat(el.value);
+  var ok=!isNaN(v)&&cond(v);
+  el.classList.toggle('error',!ok);
+  if(err){ err.textContent=msg; err.classList.toggle('visible',!ok); }
+  return ok?v:null;
+}
+
+/* ── Log-sum binomial PMF (numerically stable) ── */
+/* Uses iterative ratio method: P(k) = P(k-1) * (n-k+1)/k * p/(1-p) */
+function buildPMF(n,p){
+  var pmf=new Array(n+1);
+  if(p===0){ for(var i=0;i<=n;i++) pmf[i]=i===0?1:0; return pmf; }
+  if(p===1){ for(var i=0;i<=n;i++) pmf[i]=i===n?1:0; return pmf; }
+  /* Start from k=0 */
+  var logP0=n*Math.log(1-p);
+  pmf[0]=logP0<-700?0:Math.exp(logP0);
+  var ratio=p/(1-p);
+  for(var k=1;k<=n;k++){
+    pmf[k]=pmf[k-1]*(n-k+1)/k*ratio;
+    if(!isFinite(pmf[k])) pmf[k]=0;
+  }
+  return pmf;
+}
+
+function buildCDF(pmf){
+  var n=pmf.length-1;
+  var cdf=new Array(n+1);
+  cdf[0]=pmf[0];
+  for(var k=1;k<=n;k++) cdf[k]=cdf[k-1]+pmf[k];
+  /* Clamp floating point */
+  for(var k=0;k<=n;k++) cdf[k]=Math.min(1,Math.max(0,cdf[k]));
+  return cdf;
+}
+
+function fmtP(v){
+  if(v===0) return '0';
+  if(v>=0.001) return (v*100).toFixed(4)+'%';
+  return v.toExponential(4);
+}
+function fmtP2(v){
+  if(v===0) return '0';
+  if(v>=0.0001) return v.toFixed(6);
+  return v.toExponential(4);
+}
+function fmtPct(v){ return (v*100).toFixed(4)+'%'; }
+
+function detailBox(label,value,sub,color){
+  return '<div class="detail-box"><div class="detail-label">'+label+'</div>'+
+    '<div class="detail-value" style="color:'+(color||'var(--text)')+'">'+value+'</div>'+
+    (sub?'<div class="detail-sub">'+sub+'</div>':'')+'</div>';
+}
+
+/* ── Chart ── */
+function buildChart(labels,pmf,highlightFn,n,p){
+  /* For large n, only show meaningful range */
+  var mean=n*p,sd=Math.sqrt(n*p*(1-p));
+  var lo=Math.max(0,Math.floor(mean-4*sd));
+  var hi=Math.min(n,Math.ceil(mean+4*sd));
+  /* If n small, show all */
+  if(n<=60){ lo=0; hi=n; }
+
+  var slicedLabels=labels.slice(lo,hi+1);
+  var slicedData=pmf.slice(lo,hi+1);
+  var colors=slicedLabels.map(function(k){ return highlightFn(parseInt(k))?'rgba(216,255,58,.85)':'rgba(216,255,58,.22)'; });
+
+  document.getElementById('chart-subtitle').textContent='Binomial B('+n+', '+p+') — highlighted bar(s) = your probability event';
+
+  var cfg={
+    type:'bar',
+    data:{ labels:slicedLabels, datasets:[{
+      label:'P(X=k)',data:slicedData,backgroundColor:colors,
+      borderColor:colors.map(function(c){ return c.replace('.85','1').replace('.22','.4'); }),
+      borderWidth:1,borderRadius:3
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:400},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:function(ctx){ return 'P(X='+ctx.label+') = '+fmtP2(ctx.parsed.y); }
+      }}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},border:{color:'rgba(255,255,255,.10)'},ticks:{color:'#b8c0cc',font:{size:11},maxTicksLimit:20},title:{display:true,text:'k (number of successes)',color:'#b8c0cc',font:{size:11,weight:'600'}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},border:{color:'rgba(255,255,255,.10)'},ticks:{color:'#b8c0cc',font:{size:11},callback:function(v){ return (v*100).toFixed(1)+'%'; }},beginAtZero:true,title:{display:true,text:'Probability',color:'#b8c0cc',font:{size:11,weight:'600'}}}
+      }
+    }
+  };
+  if(pmfChart) pmfChart.destroy();
+  pmfChart=new Chart(document.getElementById('pmf-chart').getContext('2d'),cfg);
+}
+
+/* ── Distribution table ── */
+function buildTable(pmf,cdf,highlightFn,n){
+  var body=document.getElementById('dist-body');
+  body.innerHTML='';
+  var mean=n*pmf.reduce(function(s,v,k){ return s+v*k; },0);
+  var mean2=parseFloat(document.getElementById('p-in').value)*n;
+  var sd=Math.sqrt(parseFloat(document.getElementById('p-in').value)*(1-parseFloat(document.getElementById('p-in').value))*n);
+  var lo=Math.max(0,Math.floor(mean2-5*sd));
+  var hi=Math.min(n,Math.ceil(mean2+5*sd));
+  if(n<=80){ lo=0; hi=n; }
+  var maxRows=120;
+  var shown=Math.min(maxRows,hi-lo+1);
+  var trimmed=shown<(hi-lo+1);
+  for(var k=lo;k<=lo+shown-1;k++){
+    var tr=document.createElement('tr');
+    if(highlightFn(k,'exact')) tr.className='highlight';
+    else if(highlightFn(k,'range')) tr.className='highlight-range';
+    tr.innerHTML='<td>'+k+'</td><td>'+fmtP2(pmf[k])+'</td><td>'+fmtP2(cdf[k])+'</td><td>'+fmtP2(1-(k>0?cdf[k-1]:0))+'</td>';
+    body.appendChild(tr);
+  }
+  document.getElementById('table-subtitle').textContent='B('+n+', '+parseFloat(document.getElementById('p-in').value)+') — yellow = your target, blue = your range';
+  document.getElementById('table-note').textContent=trimmed?'Showing '+shown+' of '+(n+1)+' rows (range ±5σ around mean). Scroll to see all.':'';
+}
+
+/* ── Recommendations ── */
+function getRecs(mode,n,p,result,extras){
+  var recs=[];
+  var mean=n*p, sd=Math.sqrt(n*p*(1-p));
+
+  if(mode==='exact'){
+    var k=extras.k;
+    recs.push({icon:'&#x1F3B2;',iconBg:'rgba(216,255,58,.12)',iconColor:'#d8ff3a',
+      head:'Interpreting P(X = '+k+')',
+      text:'P(X='+k+') = '+fmtP2(result)+' means that if you repeat this '+n+'-item inspection many times (each with a '+( p*100).toFixed(2)+'% defect rate), you would expect to find exactly '+k+' defects in about '+(result*100).toFixed(2)+'% of runs. For rare events (small p), the Poisson distribution may be a useful approximation for large n.'});
+    if(k===0){
+      recs.push({icon:'&#x2714;',iconBg:'rgba(58,255,180,.12)',iconColor:'#3affb4',
+        head:'Zero-defects scenario',
+        text:'P(X=0) = '+fmtP2(result)+' is also the probability of a c=0 acceptance plan passing, which equals (1−p)^n. See the Attribute Sample Size Calculator for the inverse: how many items to inspect to be 95% confident the defect rate is below p when you find zero defects.'});
+    }
+  } else if(mode==='cum'){
+    var k=extras.k;
+    recs.push({icon:'&#x1F4CA;',iconBg:'rgba(58,159,255,.12)',iconColor:'#3a9fff',
+      head:'Using cumulative probabilities for sampling plans',
+      text:'P(X &le; '+k+') = '+fmtP2(extras.le)+' is the probability that your inspection accepts the lot under an acceptance number c='+k+'. P(X &ge; '+k+') = '+fmtP2(extras.ge)+' is the probability of finding '+k+' or more defects. These are the key inputs to OC (Operating Characteristic) curves.'});
+    recs.push({icon:'&#x26A0;',iconBg:'rgba(245,197,24,.12)',iconColor:'#f5c518',
+      head:"Consumer's and producer's risk",
+      text:'At '+( p*100).toFixed(2)+'% defect rate with c='+k+': the probability of rejection is '+fmtP2(extras.ge)+'. If this is the AQL (acceptable quality), this is the producer\'s risk (&alpha;). If it is the RQL (rejectable quality), 1 &minus; P(X &le; '+k+') is the consumer\'s risk (&beta;).'});
+  } else {
+    recs.push({icon:'&#x1F4D0;',iconBg:'rgba(216,255,58,.12)',iconColor:'#d8ff3a',
+      head:'Range probabilities for acceptance windows',
+      text:'P('+extras.a+' &le; X &le; '+extras.b+') = '+fmtP2(result)+' gives the probability that the number of defects falls within an acceptable window. This is useful when you have both a minimum detection threshold and a maximum acceptable count — for example, in measurement system audits or calibration checks.'});
+  }
+  recs.push({icon:'&#x1F4CB;',iconBg:'rgba(255,255,255,.05)',iconColor:'#b8c0cc',
+    head:'Expected defects and standard deviation',
+    text:'For B('+n+', '+p+'), the expected number of defects is np = '+mean.toFixed(2)+' and the standard deviation is &radic;[np(1&minus;p)] = '+sd.toFixed(3)+'. Values outside &mu; &plusmn; 3&sigma; (' +Math.max(0,mean-3*sd).toFixed(1)+' to '+Math.min(n,mean+3*sd).toFixed(1)+') account for only about 0.3% of outcomes and may warrant investigation.'});
+  return recs;
+}
+
+function renderRecs(recs){
+  var grid=document.getElementById('rec-grid'); grid.innerHTML='';
+  recs.forEach(function(r){
+    var d=document.createElement('div');d.className='rec-item';
+    d.innerHTML='<div class="rec-icon" style="background:'+r.iconBg+';color:'+r.iconColor+'">'+r.icon+'</div>'+
+      '<div><div class="rec-head">'+r.head+'</div><p class="rec-text">'+r.text+'</p></div>';
+    grid.appendChild(d);
+  });
+}
+
+/* ── Main calculate ── */
+function calculate(){
+  /* Validate n and p */
+  var n=validate('n-in','n-err',function(v){ return Number.isInteger(v)&&v>=1&&v<=1000; },'Enter a whole number from 1 to 1000.');
+  var p=validate('p-in','p-err',function(v){ return v>=0&&v<=1; },'Enter a probability between 0 and 1.');
+  if(n===null||p===null) return;
+  n=Math.round(n);
+
+  var pmf=buildPMF(n,p);
+  var cdf=buildCDF(pmf);
+  var mean=n*p;
+  var sd=Math.sqrt(n*p*(1-p));
+  var mode_val=Math.floor((n+1)*p);
+
+  var prob, notation, explanation, extras={};
+  var highlightFn;
+
+  if(currentMode==='exact'){
+    var k=validate('k-exact','k-exact-err',function(v){ return Number.isInteger(v)&&v>=0&&v<=n; },'Enter a whole number k between 0 and '+n+'.');
+    if(k===null) return;
+    k=Math.round(k);
+    prob=pmf[k];
+    notation='P(X = '+k+') with B('+n+', '+p+')';
+    document.getElementById('prob-label').textContent='Exact probability';
+    document.getElementById('prob-notation').textContent=notation;
+    document.getElementById('prob-value').textContent=fmtP2(prob);
+    document.getElementById('prob-pct').textContent=fmtPct(prob);
+    document.getElementById('prob-bar-label').textContent='Probability scale (0–100%)';
+    document.getElementById('prob-bar-fill').style.width=(prob*100)+'%';
+    document.getElementById('prob-multi').style.display='none';
+    document.getElementById('details-grid').innerHTML=
+      detailBox('Mean &mu;',mean.toFixed(3),'Expected defects','var(--text)')+
+      detailBox('Std dev &sigma;',sd.toFixed(4),'&radic;[np(1&minus;p)]','var(--text)')+
+      detailBox('Mode',mode_val,'Most likely k','var(--text)')+
+      detailBox('P(X&le;'+k+')',fmtP2(cdf[k]),'Cumulative','#3a9fff');
+    explanation='In a binomial process with n='+n+' trials and p='+( p*100).toFixed(4)+'% probability per trial, the probability of observing exactly '+k+' success'+(k!==1?'es':'')+' is '+fmtP2(prob)+' ('+fmtPct(prob)+'). '+
+      'The expected number of successes is '+mean.toFixed(2)+' with a standard deviation of '+sd.toFixed(3)+'. '+
+      'The cumulative probability P(X &le; '+k+') = '+fmtP2(cdf[k])+', meaning there is a '+fmtPct(cdf[k])+' chance of finding '+k+' or fewer successes.';
+    highlightFn=function(kk,type){ return kk===k; };
+    extras={k:k};
+    renderRecs(getRecs('exact',n,p,prob,extras));
+
+  } else if(currentMode==='cum'){
+    var k=validate('k-cum','k-cum-err',function(v){ return Number.isInteger(v)&&v>=0&&v<=n; },'Enter a whole number k between 0 and '+n+'.');
+    if(k===null) return;
+    k=Math.round(k);
+    var le=cdf[k];
+    var ge=1-(k>0?cdf[k-1]:0);
+    prob=le;
+    document.getElementById('prob-label').textContent='Cumulative probability';
+    document.getElementById('prob-notation').textContent='P(X \u2264 '+k+') with B('+n+', '+p+')';
+    document.getElementById('prob-value').textContent=fmtP2(le);
+    document.getElementById('prob-pct').textContent=fmtPct(le);
+    document.getElementById('prob-bar-label').textContent='P(X \u2264 '+k+')';
+    document.getElementById('prob-bar-fill').style.width=(le*100)+'%';
+    /* Show both le and ge */
+    document.getElementById('prob-multi').style.display='';
+    document.getElementById('prob-multi').innerHTML=
+      '<div class="prob-mini"><div class="prob-mini-label">P(X &le; '+k+')</div><div class="prob-mini-notation">At most '+k+' successes</div><div class="prob-mini-val" style="color:#d8ff3a">'+fmtP2(le)+'</div></div>'+
+      '<div class="prob-mini"><div class="prob-mini-label">P(X &ge; '+k+')</div><div class="prob-mini-notation">At least '+k+' successes</div><div class="prob-mini-val" style="color:#ff5c5c">'+fmtP2(ge)+'</div></div>';
+    document.getElementById('details-grid').innerHTML=
+      detailBox('Mean &mu;',mean.toFixed(3),'Expected successes','var(--text)')+
+      detailBox('Std dev &sigma;',sd.toFixed(4),'&radic;[np(1&minus;p)]','var(--text)')+
+      detailBox('P(X = '+k+')',fmtP2(pmf[k]),'Exact probability','#3a9fff')+
+      detailBox('Mode',mode_val,'Most likely k','var(--text)');
+    explanation='P(X \u2264 '+k+') = '+fmtP2(le)+' — there is a '+fmtPct(le)+' chance of observing '+k+' or fewer successes in '+n+' trials at p='+( p*100).toFixed(4)+'%. '+
+      'Equivalently, P(X \u2265 '+k+') = '+fmtP2(ge)+' ('+fmtPct(ge)+' chance of '+k+' or more). '+
+      'In acceptance sampling: if c='+k+' is the acceptance number, a lot with '+( p*100).toFixed(2)+'% defects would be accepted with probability '+fmtP2(le)+' and rejected with probability '+fmtP2(ge)+'.';
+    highlightFn=function(kk){ return kk<=k; };
+    extras={k:k,le:le,ge:ge};
+    renderRecs(getRecs('cum',n,p,le,extras));
+
+  } else {
+    var a=validate('a-range','a-range-err',function(v){ return Number.isInteger(v)&&v>=0&&v<=n; },'Enter a whole number between 0 and '+n+'.');
+    var b=validate('b-range','b-range-err',function(v){ return Number.isInteger(v)&&v>=0&&v<=n; },'Enter a whole number between 0 and '+n+'.');
+    if(a===null||b===null) return;
+    a=Math.round(a);b=Math.round(b);
+    if(b<a){ document.getElementById('b-range').classList.add('error'); document.getElementById('b-range-err').textContent='Upper bound must be \u2265 lower bound.'; document.getElementById('b-range-err').classList.add('visible'); return; }
+    else { document.getElementById('b-range').classList.remove('error'); document.getElementById('b-range-err').classList.remove('visible'); }
+    var rangeP=cdf[b]-(a>0?cdf[a-1]:0);
+    prob=rangeP;
+    document.getElementById('prob-label').textContent='Range probability';
+    document.getElementById('prob-notation').textContent='P('+a+' \u2264 X \u2264 '+b+') with B('+n+', '+p+')';
+    document.getElementById('prob-value').textContent=fmtP2(rangeP);
+    document.getElementById('prob-pct').textContent=fmtPct(rangeP);
+    document.getElementById('prob-bar-label').textContent='Probability scale';
+    document.getElementById('prob-bar-fill').style.width=(rangeP*100)+'%';
+    document.getElementById('prob-multi').style.display='none';
+    document.getElementById('details-grid').innerHTML=
+      detailBox('Mean &mu;',mean.toFixed(3),'Expected successes','var(--text)')+
+      detailBox('Std dev &sigma;',sd.toFixed(4),'&radic;[np(1&minus;p)]','var(--text)')+
+      detailBox('P(X&le;'+b+')',fmtP2(cdf[b]),'Upper CDF','#3a9fff')+
+      detailBox('P(X&le;'+(a-1)+')',a>0?fmtP2(cdf[a-1]):'0','Lower CDF','var(--muted)');
+    explanation='P('+a+' \u2264 X \u2264 '+b+') = '+fmtP2(rangeP)+' — in '+n+' trials at p='+( p*100).toFixed(4)+'%, there is a '+fmtPct(rangeP)+' probability of observing between '+a+' and '+b+' successes (inclusive). '+
+      'This is calculated as P(X \u2264 '+b+') \u2212 P(X \u2264 '+(a-1)+') = '+fmtP2(cdf[b])+' \u2212 '+(a>0?fmtP2(cdf[a-1]):'0')+'.';
+    highlightFn=function(kk,type){ if(type==='range') return kk>=a&&kk<=b; return false; };
+    extras={a:a,b:b};
+    renderRecs(getRecs('range',n,p,rangeP,extras));
+  }
+
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-panel').classList.add('visible');
+
+  /* Build chart labels */
+  var labels=[]; for(var kk=0;kk<=n;kk++) labels.push(String(kk));
+
+  /* Chart highlight function */
+  var chartHighlight;
+  if(currentMode==='exact'){ var _k=extras.k||0; chartHighlight=function(kk){ return kk===_k; }; }
+  else if(currentMode==='cum'){ var _k=extras.k||0; chartHighlight=function(kk){ return kk<=_k; }; }
+  else { var _a=extras.a||0,_b=extras.b||0; chartHighlight=function(kk){ return kk>=_a&&kk<=_b; }; }
+
+  /* Table highlight */
+  var tableHighlight;
+  if(currentMode==='exact'){ var _k=extras.k||0; tableHighlight=function(kk,t){ return t==='exact'&&kk===_k; }; }
+  else if(currentMode==='cum'){ var _k=extras.k||0; tableHighlight=function(kk,t){ return t==='exact'&&kk===_k; }; }
+  else { var _a=extras.a||0,_b=extras.b||0; tableHighlight=function(kk,t){ return t==='range'&&kk>=_a&&kk<=_b; }; }
+
+  document.getElementById('chart-section').classList.add('visible');
+  document.getElementById('table-section').classList.add('visible');
+  buildChart(labels,pmf,chartHighlight,n,p);
+  buildTable(pmf,cdf,tableHighlight,n);
+  document.getElementById('improve-section').classList.add('visible');
+}
+
+function resetCalc(){
+  ['n-in','p-in','k-exact','k-cum','a-range','b-range'].forEach(function(id){
+    var el=document.getElementById(id); if(el){ el.value=''; el.classList.remove('error'); }
+  });
+  ['n-err','p-err','k-exact-err','k-cum-err','a-range-err','b-range-err'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('visible');
+  });
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('empty-state').style.display='';
+  document.getElementById('chart-section').classList.remove('visible');
+  document.getElementById('table-section').classList.remove('visible');
+  document.getElementById('improve-section').classList.remove('visible');
+  document.getElementById('prob-multi').style.display='none';
+  if(pmfChart){ pmfChart.destroy(); pmfChart=null; }
+}
+
+document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.ctrlKey) calculate(); });
+</script>
+</body>
+</html>

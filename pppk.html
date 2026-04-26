@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Pp Ppk Calculator | Long-Term Process Capability | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:
+      radial-gradient(circle at left 30%,rgba(216,255,58,.08),transparent 24%),
+      linear-gradient(180deg,#05070b 0%,#07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}
+
+  /* ── Header ── */
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:14px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:2}
+
+  /* ── Layout ── */
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{
+    background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+
+  /* ── Form ── */
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .panel-sub{font-size:14px;color:var(--muted);margin:0 0 24px}
+  .field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input{
+    width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;
+    font-family:inherit;outline:none;transition:border-color .2s,background .2s;-moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input::placeholder{color:#4d5766}
+  .field input:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  .optional-divider{
+    display:flex;align-items:center;gap:12px;margin:4px 0;
+  }
+  .optional-divider span{font-size:12px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+  .optional-divider::before,.optional-divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ── Buttons ── */
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* ── Results ── */
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{
+    background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);
+    border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none;
+  }
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+
+  /* Status bar */
+  .status-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:12px;margin-bottom:20px;border:1px solid}
+  .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .status-bar-text{font-size:15px;font-weight:800;letter-spacing:.02em}
+  .status-bar-sub{font-size:13px;font-weight:600;margin-left:auto;opacity:.8}
+
+  /* Result pair */
+  .result-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .result-block{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:20px;padding:22px 24px}
+  .result-block-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .result-block-value{font-size:clamp(36px,5vw,54px);font-weight:900;letter-spacing:-.03em;line-height:1;margin-bottom:6px}
+  .result-block-sub{font-size:14px;color:var(--muted);font-weight:600}
+
+  /* Centering row */
+  .centering-row{display:flex;align-items:center;gap:14px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;margin-bottom:0}
+  .centering-label{font-size:15px;color:var(--muted);font-weight:600}
+  .centering-value{font-size:17px;font-weight:800;margin-left:auto;letter-spacing:-.01em}
+  .centering-badge{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+
+  /* Comparison panel */
+  .comparison-panel{
+    background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin-top:18px;
+  }
+  .comparison-title{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+  .comparison-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .comp-cell{text-align:center}
+  .comp-cell-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .comp-cell-value{font-size:20px;font-weight:900;letter-spacing:-.02em}
+  .comp-cell-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
+  .comp-divider{width:1px;background:var(--line);align-self:stretch}
+
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* ── Empty state ── */
+  .empty-state{
+    background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center;
+  }
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* ── Chart section ── */
+  .chart-section{display:none;margin-top:28px}
+  .chart-section.visible{display:block}
+  .chart-panel{
+    background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top right,rgba(216,255,58,.06),transparent 30%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+  .chart-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px}
+  .chart-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:15px;color:var(--muted)}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted)}
+  .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .chart-wrap{position:relative;width:100%;height:280px}
+  .chart-note{font-size:13px;color:var(--muted);margin-top:14px;text-align:center;font-weight:600}
+
+  /* ── Improvement section ── */
+  .improve-section{display:none;padding:0 0 48px}
+  .improve-section.visible{display:block}
+  .improve-panel{
+    background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at bottom left,rgba(216,255,58,.06),transparent 30%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+  .rec-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+  .rec-head{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* ── How it works ── */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* ── Footer ── */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg,#05070b 0%,#07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.result-pair,.field-row,.rec-grid,.comparison-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}
+    .formula-badge{display:none}
+    .comp-divider{display:none}
+    .chart-header{flex-direction:column}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}
+    nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max),calc(100% - 28px))}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/pppk.html">
+  <meta name="description" content="Free Pp and Ppk calculator. Enter spec limits, mean and overall standard deviation to compute long-term process performance and benchmark against the 1.33 / 1.67 thresholds.">
+  <meta name="keywords" content="pp ppk calculator, process performance calculator, long-term capability, ppk formula, six sigma performance, pp vs ppk, performance index UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/pppk.html">
+  <meta property="og:title" content="Pp Ppk Calculator | Long-Term Process Capability | SimplicityHub">
+  <meta property="og:description" content="Free Pp and Ppk calculator. Enter spec limits, mean and overall standard deviation to compute long-term process performance and benchmark against the 1.33 / 1.67 thresholds.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pp Ppk Calculator | Long-Term Process Capability | SimplicityHub">
+  <meta name="twitter:description" content="Free Pp and Ppk calculator. Enter spec limits, mean and overall standard deviation to compute long-term process performance and benchmark against the 1.33 / 1.67 thresholds.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Pp / Ppk Calculator","item":"https://www.simplicityhub.co.uk/pages/pppk.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Pp / Ppk Calculator","url":"https://www.simplicityhub.co.uk/pages/pppk.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free Pp and Ppk calculator. Enter spec limits, mean and overall standard deviation to compute long-term process performance and benchmark against the 1.33 / 1.67 thresholds.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between Pp/Ppk and Cp/Cpk?","acceptedAnswer":{"@type":"Answer","text":"Cp/Cpk use the within-subgroup standard deviation (short-term, common-cause only). Pp/Ppk use the overall standard deviation calculated from every individual value (long-term, including drift and shift). Ppk is always less than or equal to Cpk; the gap is the size of the long-term instability."}},{"@type":"Question","name":"Which one should I report to a customer?","acceptedAnswer":{"@type":"Answer","text":"Most customer requirements and AIAG standards specify Ppk for performance reporting because it represents what the customer actually receives. Cpk is reserved for short-term capability studies during development. Reporting Cpk where Ppk is required is one of the most common audit findings."}},{"@type":"Question","name":"What does it mean when Cpk and Ppk are very different?","acceptedAnswer":{"@type":"Answer","text":"A large gap means the process is unstable — significant drift, shift or special-cause variation between subgroups. The short-term capability looks healthy but the long-term performance is much weaker. Stabilising the process (eliminating special causes) closes the gap before reducing variability further."}},{"@type":"Question","name":"How much data do I need for a valid Ppk?","acceptedAnswer":{"@type":"Answer","text":"A minimum of 100 measurements collected over a representative time window (multiple shifts, multiple operators, multiple batches). Ppk based on 30 measurements collected in a single hour is statistically just a Cpk in disguise — it cannot capture the long-term drift Ppk is meant to reflect."}},{"@type":"Question","name":"What Ppk is acceptable?","acceptedAnswer":{"@type":"Answer","text":"The same thresholds as Cpk: 1.33 capable, 1.67 highly capable, 2.0 six-sigma. The difference is that hitting Ppk = 1.67 is much harder than hitting Cpk = 1.67, because you must keep the process both narrow and centred over weeks or months, not just within a single subgroup."}}]}</script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <a href="tools.html">Calculators</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Pp / Ppk Calculator</span>
+    </div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Pp / Ppk Calculator</h1>
+        <p class="lead">Measure long-term process performance using overall standard deviation — and compare it to short-term capability to reveal instability, drift, and variation that only appears over time.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formulas</div>
+        <div class="formula-text">
+          Pp &nbsp;= (USL &minus; LSL) &divide; (6s)<br>
+          Ppk = min[(USL &minus; x̄), (x̄ &minus; LSL)] &divide; (3s)<br>
+          <span style="color:var(--muted);font-size:12px">s = overall sample standard deviation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Calculator ── -->
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <p class="panel-sub">Use the overall (long-term) standard deviation — calculated from all measurements, not within subgroups.</p>
+
+        <div class="field-group">
+          <div class="field-row">
+            <div class="field">
+              <label for="usl">Upper spec limit (USL)</label>
+              <span class="field-hint">Highest acceptable value</span>
+              <input type="number" id="usl" placeholder="e.g. 10.5" step="any">
+              <span class="field-error" id="usl-err">Enter a valid USL.</span>
+            </div>
+            <div class="field">
+              <label for="lsl">Lower spec limit (LSL)</label>
+              <span class="field-hint">Lowest acceptable value</span>
+              <input type="number" id="lsl" placeholder="e.g. 9.5" step="any">
+              <span class="field-error" id="lsl-err">Enter a valid LSL.</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="mean">Process mean (x̄)</label>
+              <span class="field-hint">Average of all measurements</span>
+              <input type="number" id="mean" placeholder="e.g. 10.1" step="any">
+              <span class="field-error" id="mean-err">Enter a valid process mean.</span>
+            </div>
+            <div class="field">
+              <label for="stdev">Overall std dev (s)</label>
+              <span class="field-hint">Standard deviation of all data points</span>
+              <input type="number" id="stdev" placeholder="e.g. 0.18" step="any" min="0">
+              <span class="field-error" id="stdev-err">Enter a valid standard deviation (greater than 0).</span>
+            </div>
+          </div>
+
+          <div class="optional-divider"><span>Optional — for Pp vs Cp comparison</span></div>
+
+          <div class="field">
+            <label for="stdev-within">Within-subgroup std dev (σ̂)</label>
+            <span class="field-hint">Short-term variation estimate (from R-bar/d₂ or s-bar/c₄). Leave blank to skip comparison.</span>
+            <input type="number" id="stdev-within" placeholder="e.g. 0.12" step="any" min="0">
+            <span class="field-error" id="stdev-within-err">Enter a valid within-subgroup standard deviation (greater than 0).</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Result area -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4C8;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your specification limits, process mean, and overall standard deviation. Optionally add within-subgroup standard deviation to compare long-term vs short-term performance.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+
+            <!-- Status bar -->
+            <div class="status-bar" id="status-bar">
+              <div class="status-dot" id="status-dot"></div>
+              <span class="status-bar-text" id="status-text"></span>
+              <span class="status-bar-sub" id="status-sub"></span>
+            </div>
+
+            <div class="result-label">Long-term performance results</div>
+
+            <div class="result-pair">
+              <div class="result-block">
+                <div class="result-block-label">Pp — Long-term potential</div>
+                <div class="result-block-value" id="pp-value">—</div>
+                <div class="result-block-sub" id="pp-label">—</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-label">Ppk — Long-term actual</div>
+                <div class="result-block-value" id="ppk-value">—</div>
+                <div class="result-block-sub" id="ppk-label">—</div>
+              </div>
+            </div>
+
+            <div class="centering-row">
+              <span class="centering-label">Process centering</span>
+              <span class="centering-value" id="centering-value">—</span>
+              <span class="centering-badge" id="centering-badge"></span>
+            </div>
+
+            <!-- Comparison panel (shown only if within-subgroup σ provided) -->
+            <div class="comparison-panel" id="comparison-panel" style="display:none">
+              <div class="comparison-title">Long-term vs Short-term comparison</div>
+              <div class="comparison-grid">
+                <div class="comp-cell">
+                  <div class="comp-cell-label">Pp</div>
+                  <div class="comp-cell-value" id="comp-pp">—</div>
+                  <div class="comp-cell-sub">Long-term</div>
+                </div>
+                <div class="comp-cell">
+                  <div class="comp-cell-label">Cp</div>
+                  <div class="comp-cell-value" id="comp-cp">—</div>
+                  <div class="comp-cell-sub">Short-term</div>
+                </div>
+                <div class="comp-cell">
+                  <div class="comp-cell-label">Ppk</div>
+                  <div class="comp-cell-value" id="comp-ppk">—</div>
+                  <div class="comp-cell-sub">Long-term</div>
+                </div>
+                <div class="comp-cell">
+                  <div class="comp-cell-label">Cpk</div>
+                  <div class="comp-cell-value" id="comp-cpk">—</div>
+                  <div class="comp-cell-sub">Short-term</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:28px;flex-wrap:wrap">
+                <div>
+                  <span style="font-size:13px;color:var(--muted);font-weight:600">Stability ratio (Pp/Cp)&nbsp;</span>
+                  <span id="stability-ratio" style="font-size:15px;font-weight:800"></span>
+                </div>
+                <div id="stability-note" style="font-size:13px;color:var(--muted);font-weight:600;flex:1"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bell curve chart -->
+    <div class="chart-section" id="chart-section">
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Long-term Process Distribution</div>
+            <div class="chart-subtitle">Overall variation relative to specification limits — reflects actual performance over time</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(255,92,92,.7)"></div><span>Defect zone</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(216,255,58,.35)"></div><span>Within spec</span></div>
+            <div class="legend-item"><div style="width:20px;border-top:2px dashed #ff5c5c;flex-shrink:0"></div><span>LSL / USL</span></div>
+            <div class="legend-item"><div style="width:20px;border-top:2px dashed #d8ff3a;flex-shrink:0"></div><span>Mean (x̄)</span></div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="bell-chart"></canvas></div>
+        <div class="chart-note" id="chart-note"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Improvement guidance ── -->
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">How to Improve Your Performance</div>
+      <div class="improve-sub">Tailored recommendations based on your Pp, Ppk, and process stability</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 28px">Understanding Pp and Ppk</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">Pp</div>
+        <h4>Long-term potential</h4>
+        <p>Pp uses the overall standard deviation — all data over time, including variation from shifts, batches, operators, and environment. It tells you how the process actually behaves in the long run, not just under ideal short-term conditions.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Ppk</div>
+        <h4>Long-term actual</h4>
+        <p>Ppk adds centering to Pp — it takes account of where the mean sits relative to the spec limits. A large gap between Pp and Ppk means the process is off-centre. A large gap between Cpk and Ppk means the process is unstable over time.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num" style="font-size:11px">Pp/Cp</div>
+        <h4>Stability ratio</h4>
+        <p>Dividing Pp by Cp (or Ppk by Cpk) gives the stability ratio. A ratio close to 1.0 means the process is stable — long-term and short-term variation are similar. A ratio significantly below 1.0 indicates drift, shift, or instability between subgroups.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this pp / ppk calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Pp and Ppk are the long-term equivalents of Cp and Cpk. Where Cp/Cpk use the within-subgroup (short-term) standard deviation and capture only common-cause variation, Pp and Ppk use the overall standard deviation calculated from all individual values, capturing both within-subgroup variability and any drift between subgroups over time. This makes Pp/Ppk a more honest reflection of what the customer actually receives. This calculator takes your upper and lower spec limits, the process mean and the overall standard deviation, and returns Pp, Ppu, Ppl, Ppk, the predicted defect rate per million, and the gap between Cpk and Ppk (a direct measure of how unstable the process is).</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator after a long-term capability study (typically 100+ measurements collected over multiple shifts, days or weeks), as a customer deliverable, when establishing baseline capability for a new product, or when investigating why customer-side defect rates exceed in-house ones. It is also the right tool when benchmarking real performance, not theoretical capability.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A process has spec limits 495-505 ml, overall mean 500.3 ml and overall SD 1.6 ml (vs short-term SD 1.2 ml). Pp = (505 - 495) / (6 × 1.6) = 1.04. Ppu = (505 - 500.3) / (3 × 1.6) = 0.98; Ppl = 1.10; Ppk = 0.98. Compared to Cpk of 1.25 calculated from short-term data, Ppk of 0.98 reveals 27% additional drift between subgroups — the process is less stable than its short-term capability suggests, and the customer will see noticeably more out-of-spec parts than the Cpk number implies.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the difference between Pp/Ppk and Cp/Cpk?</summary><p>Cp/Cpk use the within-subgroup standard deviation (short-term, common-cause only). Pp/Ppk use the overall standard deviation calculated from every individual value (long-term, including drift and shift). Ppk is always less than or equal to Cpk; the gap is the size of the long-term instability.</p></details>
+      <details class="seo-faq-item"><summary>Which one should I report to a customer?</summary><p>Most customer requirements and AIAG standards specify Ppk for performance reporting because it represents what the customer actually receives. Cpk is reserved for short-term capability studies during development. Reporting Cpk where Ppk is required is one of the most common audit findings.</p></details>
+      <details class="seo-faq-item"><summary>What does it mean when Cpk and Ppk are very different?</summary><p>A large gap means the process is unstable — significant drift, shift or special-cause variation between subgroups. The short-term capability looks healthy but the long-term performance is much weaker. Stabilising the process (eliminating special causes) closes the gap before reducing variability further.</p></details>
+      <details class="seo-faq-item"><summary>How much data do I need for a valid Ppk?</summary><p>A minimum of 100 measurements collected over a representative time window (multiple shifts, multiple operators, multiple batches). Ppk based on 30 measurements collected in a single hour is statistically just a Cpk in disguise — it cannot capture the long-term drift Ppk is meant to reflect.</p></details>
+      <details class="seo-faq-item"><summary>What Ppk is acceptable?</summary><p>The same thresholds as Cpk: 1.33 capable, 1.67 highly capable, 2.0 six-sigma. The difference is that hitting Ppk = 1.67 is much harder than hitting Cpk = 1.67, because you must keep the process both narrow and centred over weeks or months, not just within a single subgroup.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════
+   SHARED UTILITIES
+═══════════════════════════════════════ */
+function normalPDF(x, mean, sd) {
+  var z = (x - mean) / sd;
+  return (1 / (sd * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * z * z);
+}
+
+function capLabel(v) {
+  if (v < 0.67)  return { text:'Not capable',         color:'#ff5c5c' };
+  if (v < 1.00)  return { text:'Poor capability',     color:'#ff7a42' };
+  if (v < 1.33)  return { text:'Marginal capability', color:'#f5c518' };
+  if (v < 1.67)  return { text:'Capable',             color:'#8fd14f' };
+  if (v < 2.00)  return { text:'Very capable',        color:'#d8ff3a' };
+  return               { text:'World class',          color:'#3affb4' };
+}
+
+function centerLabel(pp, ppk) {
+  var r = ppk / pp;
+  if (r >= 0.99) return { text:'Well centred',             badge:'Centred',     color:'#3affb4', bg:'rgba(58,255,180,.10)' };
+  if (r >= 0.90) return { text:'Slightly off-centre',      badge:'Near centre', color:'#d8ff3a', bg:'rgba(216,255,58,.10)' };
+  if (r >= 0.75) return { text:'Off-centre',               badge:'Off-centre',  color:'#f5c518', bg:'rgba(245,197,24,.10)' };
+  return                { text:'Significantly off-centre', badge:'Skewed',      color:'#ff5c5c', bg:'rgba(255,92,92,.10)' };
+}
+
+function statusInfo(ppk) {
+  if (ppk < 1.00) return { color:'#ff5c5c', bg:'rgba(255,92,92,.08)', border:'rgba(255,92,92,.25)', text:'Poor long-term performance', sub:'Ppk < 1.00 — process produces defects over time' };
+  if (ppk < 1.33) return { color:'#f5c518', bg:'rgba(245,197,24,.08)', border:'rgba(245,197,24,.25)', text:'Marginal long-term performance', sub:'Ppk 1.00–1.33 — borderline; instability risk' };
+  return                 { color:'#3affb4', bg:'rgba(58,255,180,.08)', border:'rgba(58,255,180,.25)', text:'Capable long-term performance', sub:'Ppk ≥ 1.33 — process performs well over time' };
+}
+
+function validate(id, errId, required, condition) {
+  var el  = document.getElementById(id);
+  var err = document.getElementById(errId);
+  var raw = el.value.trim();
+  if (!required && raw === '') { el.classList.remove('error'); err.classList.remove('visible'); return undefined; }
+  var v  = parseFloat(raw);
+  var ok = !isNaN(v) && condition(v);
+  el.classList.toggle('error', !ok);
+  err.classList.toggle('visible', !ok);
+  return ok ? v : null;
+}
+
+/* ═══════════════════════════════════════
+   CHART
+═══════════════════════════════════════ */
+var bellChart = null;
+
+var verticalLinesPlugin = {
+  id:'verticalLines',
+  afterDraw:function(chart){
+    if (!chart.config.options.verticalLines) return;
+    var lines = chart.config.options.verticalLines;
+    var ctx   = chart.ctx, xAxis = chart.scales.x, yAxis = chart.scales.y;
+    lines.forEach(function(line){
+      var xPx = xAxis.getPixelForValue(line.value);
+      if (xPx < xAxis.left || xPx > xAxis.right) return;
+      ctx.save();
+      ctx.setLineDash([6,4]);
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth   = 2;
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.moveTo(xPx, yAxis.top); ctx.lineTo(xPx, yAxis.bottom); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.fillStyle = line.color;
+      ctx.font = 'bold 11px Inter,sans-serif';
+      ctx.textAlign = line.align || 'center';
+      ctx.fillText(line.label, xPx + (line.offsetX||0), yAxis.top + 14);
+      ctx.restore();
+    });
+  }
+};
+Chart.register(verticalLinesPlugin);
+
+function buildChart(usl, lsl, mean, sd, pp, ppk) {
+  var padding = sd * 3.5;
+  var xMin = Math.min(lsl, mean) - padding;
+  var xMax = Math.max(usl, mean) + padding;
+  var steps = 300;
+  var xs = [];
+  for (var i = 0; i <= steps; i++) xs.push(xMin + (xMax - xMin) * i / steps);
+
+  var yFull   = xs.map(function(x){ return normalPDF(x, mean, sd); });
+  var yLeft   = xs.map(function(x, i){ return x <= lsl ? yFull[i] : null; });
+  var yCentre = xs.map(function(x, i){ return x >= lsl && x <= usl ? yFull[i] : null; });
+  var yRight  = xs.map(function(x, i){ return x >= usl ? yFull[i] : null; });
+
+  var datasets = [
+    { label:'Left tail',  data:yLeft,   borderColor:'transparent', backgroundColor:'rgba(255,92,92,.30)',  fill:'origin', tension:0.4, pointRadius:0, spanGaps:false },
+    { label:'Within',     data:yCentre, borderColor:'transparent', backgroundColor:'rgba(216,255,58,.12)', fill:'origin', tension:0.4, pointRadius:0, spanGaps:false },
+    { label:'Right tail', data:yRight,  borderColor:'transparent', backgroundColor:'rgba(255,92,92,.30)',  fill:'origin', tension:0.4, pointRadius:0, spanGaps:false },
+    { label:'Curve',      data:yFull,   borderColor:'rgba(255,255,255,.60)', backgroundColor:'transparent', fill:false, tension:0.4, pointRadius:0, borderWidth:2 }
+  ];
+
+  var vLines = [
+    { value:lsl,  color:'#ff5c5c', label:'LSL',  align:'left',   offsetX:4  },
+    { value:usl,  color:'#ff5c5c', label:'USL',  align:'right',  offsetX:-4 },
+    { value:mean, color:'#d8ff3a', label:'x\u0305', align:'center', offsetX:0 }
+  ];
+
+  var ppInfo = capLabel(pp), ppkInfo = capLabel(ppk);
+  document.getElementById('chart-note').innerHTML =
+    'Pp&nbsp;<strong style="color:' + ppInfo.color + '">' + pp.toFixed(2) + '</strong>' +
+    '&ensp;&bull;&ensp;Ppk&nbsp;<strong style="color:' + ppkInfo.color + '">' + ppk.toFixed(2) + '</strong>' +
+    '&ensp;&bull;&ensp;x\u0305&nbsp;<strong style="color:#d8ff3a">' + mean + '</strong>' +
+    '&ensp;&bull;&ensp;LSL&nbsp;<strong style="color:#ff5c5c">' + lsl + '</strong>' +
+    '&ensp;/&ensp;USL&nbsp;<strong style="color:#ff5c5c">' + usl + '</strong>';
+
+  var cfg = {
+    type:'line', data:{ labels:xs, datasets:datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{ duration:400 },
+      plugins:{ legend:{ display:false }, tooltip:{ enabled:false } },
+      scales:{
+        x:{ type:'linear', min:xMin, max:xMax, grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false }, border:{ color:'rgba(255,255,255,0.10)' }, ticks:{ color:'#b8c0cc', font:{ size:11, weight:'600' }, maxTicksLimit:8, callback:function(v){ return parseFloat(v.toFixed(4)); } } },
+        y:{ grid:{ color:'rgba(255,255,255,0.05)', drawTicks:false }, border:{ color:'rgba(255,255,255,0.10)' }, ticks:{ display:false }, beginAtZero:true }
+      },
+      verticalLines:vLines
+    }
+  };
+
+  if (bellChart) {
+    bellChart.data.labels   = xs;
+    bellChart.data.datasets = datasets;
+    bellChart.options.verticalLines = vLines;
+    bellChart.options.scales.x.min = xMin;
+    bellChart.options.scales.x.max = xMax;
+    bellChart.update('active');
+  } else {
+    bellChart = new Chart(document.getElementById('bell-chart').getContext('2d'), cfg);
+  }
+}
+
+/* ═══════════════════════════════════════
+   EXPLANATION
+═══════════════════════════════════════ */
+function getExplanation(pp, ppk, usl, lsl, mean, s, sdWithin) {
+  var ppFmt  = pp.toFixed(2);
+  var ppkFmt = ppk.toFixed(2);
+  var base = 'Pp of ' + ppFmt + ' shows that your overall process spread uses ' +
+    (100 / pp).toFixed(0) + '% of the specification range when measured across all data over time ' +
+    (pp >= 1 ? '— total variation fits within the limits' : '— total variation exceeds the specification range') + '. ';
+
+  var part2 = 'Ppk of ' + ppkFmt;
+
+  var stab = '';
+  if (sdWithin !== undefined && sdWithin !== null) {
+    var cp  = (usl - lsl) / (6 * sdWithin);
+    var ratio = pp / cp;
+    if (ratio < 0.80)       stab = ' The stability ratio (Pp/Cp = ' + ratio.toFixed(2) + ') is significantly below 1.0 — there is substantial drift or instability between subgroups that inflates overall variation. Investigate assignable causes such as shift changes, raw material variation, or environmental factors.';
+    else if (ratio < 0.95)  stab = ' The stability ratio (Pp/Cp = ' + ratio.toFixed(2) + ') is slightly below 1.0 — some between-subgroup variation is present but the process is broadly stable. Monitor for trends over time.';
+    else                    stab = ' The stability ratio (Pp/Cp = ' + ratio.toFixed(2) + ') is close to 1.0 — the process is stable with consistent variation between subgroups.';
+  }
+
+  if (ppk < 1.0)  return base + part2 + ' means the process is generating output outside the specification limits in the long run. Both centering and variation reduction are required.' + stab;
+  if (ppk < 1.33) return base + part2 + ' is marginal. The long-term performance is close to the minimum threshold but susceptible to drift. Improvement work should be prioritised.' + stab;
+  if (pp - ppk > 0.15) return base + part2 + ' shows good overall variation control, but the mean is not centred in the specification window. Adjusting the process setpoint toward ' + ((usl+lsl)/2).toFixed(4) + ' will improve Ppk without any need to reduce variation.' + stab;
+  return base + part2 + ' confirms capable, centred long-term performance. Sustain with process controls and regular reviews to prevent drift.' + stab;
+}
+
+/* ═══════════════════════════════════════
+   RECOMMENDATIONS
+═══════════════════════════════════════ */
+function getRecommendations(pp, ppk, mean, usl, lsl, sdWithin) {
+  var recs = [];
+  var target = (usl + lsl) / 2;
+
+  if (pp < 1.33) {
+    recs.push({ icon:'&#x2193;', iconBg:'rgba(255,92,92,.12)', iconColor:'#ff5c5c', head:'Reduce overall variation', text:'Pp of ' + pp.toFixed(2) + ' indicates that long-term variation is too wide for the specification range. Investigate and eliminate sources of between-subgroup variation — raw material inconsistency, shift-to-shift differences, seasonal or environmental factors.' });
+  }
+
+  if (pp - ppk > 0.10) {
+    var dir = mean > target ? 'lower' : 'higher';
+    recs.push({ icon:'&#x2194;', iconBg:'rgba(245,197,24,.12)', iconColor:'#f5c518', head:'Centre the process mean', text:'The gap between Pp and Ppk shows the process is not centred. Adjust the setpoint toward the specification midpoint (' + target.toFixed(4) + '). A ' + Math.abs(mean - target).toFixed(4) + '-unit shift ' + dir + ' will improve Ppk without changing variation.' });
+  }
+
+  if (ppk < 1.0) {
+    recs.push({ icon:'&#x26A0;', iconBg:'rgba(255,92,92,.12)', iconColor:'#ff5c5c', head:'Implement containment immediately', text:'A Ppk below 1.0 means defective product is being generated over the long term. Put in place 100% inspection or sorting to prevent non-conforming output from progressing to customers or downstream processes while improvement work is underway.' });
+  }
+
+  if (sdWithin !== undefined && sdWithin !== null) {
+    var cp  = (usl - lsl) / (6 * sdWithin);
+    var ratio = pp / cp;
+    if (ratio < 0.85) {
+      recs.push({ icon:'&#x1F50D;', iconBg:'rgba(255,140,66,.12)', iconColor:'#ff8c42', head:'Investigate process instability', text:'The stability ratio (Pp/Cp = ' + ratio.toFixed(2) + ') shows that long-term variation is substantially larger than short-term variation. Use an X-bar & R chart to identify when shifts occur — look for patterns aligned with batches, shifts, operators, or time of day.' });
+    }
+  }
+
+  if (ppk >= 1.0 && ppk < 1.33) {
+    recs.push({ icon:'&#x1F4CA;', iconBg:'rgba(245,197,24,.12)', iconColor:'#f5c518', head:'Add Statistical Process Control', text:'A Ppk of ' + ppk.toFixed(2) + ' is borderline. Normal process drift could push performance below 1.0. Introduce control charts to detect shifts early and respond before they generate defects.' });
+  }
+
+  if (pp >= 1.33 && ppk >= 1.33 && pp - ppk <= 0.10) {
+    recs.push({ icon:'&#x2713;', iconBg:'rgba(58,255,180,.12)', iconColor:'#3affb4', head:'Sustain with process controls', text:'Long-term performance is capable and centred. Maintain control charts to detect any drift, and schedule periodic measurement system analysis (MSA/Gauge R&R) to ensure measurement variation is not masking real changes.' });
+  }
+
+  if (ppk >= 1.67) {
+    recs.push({ icon:'&#x1F3AF;', iconBg:'rgba(216,255,58,.12)', iconColor:'#d8ff3a', head:'Leverage spare capability', text:'With Ppk of ' + ppk.toFixed(2) + ' you have significant long-term margin. Consider tightening internal control limits, reducing inspection frequency, or using this as a benchmark for qualifying similar processes.' });
+  }
+
+  return recs;
+}
+
+function renderRecs(recs) {
+  var grid = document.getElementById('rec-grid');
+  grid.innerHTML = '';
+  recs.forEach(function(r) {
+    var d = document.createElement('div');
+    d.className = 'rec-item';
+    d.innerHTML = '<div class="rec-icon" style="background:' + r.iconBg + ';color:' + r.iconColor + '">' + r.icon + '</div>' +
+      '<div><div class="rec-head">' + r.head + '</div><p class="rec-text">' + r.text + '</p></div>';
+    grid.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════
+   MAIN
+═══════════════════════════════════════ */
+function calculate() {
+  var usl  = validate('usl',   'usl-err',  true,  function(){ return true; });
+  var lsl  = validate('lsl',   'lsl-err',  true,  function(){ return true; });
+  var mean = validate('mean',  'mean-err', true,  function(){ return true; });
+  var s    = validate('stdev', 'stdev-err',true,  function(v){ return v > 0; });
+  var sw   = validate('stdev-within','stdev-within-err', false, function(v){ return v > 0; });
+
+  if (usl === null || lsl === null || mean === null || s === null) return;
+  if (sw === null) return; /* optional but had bad value */
+
+  if (usl <= lsl) {
+    document.getElementById('usl').classList.add('error');
+    document.getElementById('usl-err').textContent = 'USL must be greater than LSL.';
+    document.getElementById('usl-err').classList.add('visible');
+    return;
+  }
+  document.getElementById('usl-err').textContent = 'Enter a valid USL.';
+
+  var pp  = (usl - lsl) / (6 * s);
+  var ppu = (usl - mean) / (3 * s);
+  var ppl = (mean - lsl) / (3 * s);
+  var ppk = Math.min(ppu, ppl);
+
+  var ppInfo  = capLabel(pp);
+  var ppkInfo = capLabel(ppk);
+  var centre  = centerLabel(pp, ppk);
+  var status  = statusInfo(ppk);
+
+  /* Status bar */
+  var sBar = document.getElementById('status-bar');
+  sBar.style.background  = status.bg;
+  sBar.style.borderColor = status.border;
+  document.getElementById('status-dot').style.background = status.color;
+  document.getElementById('status-text').textContent     = status.text;
+  document.getElementById('status-text').style.color     = status.color;
+  document.getElementById('status-sub').textContent      = status.sub;
+
+  /* Pp / Ppk */
+  document.getElementById('pp-value').textContent  = pp.toFixed(2);
+  document.getElementById('pp-value').style.color  = ppInfo.color;
+  document.getElementById('pp-label').textContent  = ppInfo.text;
+  document.getElementById('pp-label').style.color  = ppInfo.color;
+
+  document.getElementById('ppk-value').textContent = ppk.toFixed(2);
+  document.getElementById('ppk-value').style.color = ppkInfo.color;
+  document.getElementById('ppk-label').textContent = ppkInfo.text;
+  document.getElementById('ppk-label').style.color = ppkInfo.color;
+
+  /* Centering */
+  document.getElementById('centering-value').textContent = centre.text;
+  document.getElementById('centering-value').style.color = centre.color;
+  var badge = document.getElementById('centering-badge');
+  badge.textContent      = centre.badge;
+  badge.style.color      = centre.color;
+  badge.style.background = centre.bg;
+  badge.style.border     = '1px solid ' + centre.color;
+
+  /* Optional comparison */
+  var compPanel = document.getElementById('comparison-panel');
+  if (sw !== undefined) {
+    var cp  = (usl - lsl) / (6 * sw);
+    var cpu = (usl - mean) / (3 * sw);
+    var cpl = (mean - lsl) / (3 * sw);
+    var cpk = Math.min(cpu, cpl);
+    var ratio = pp / cp;
+
+    document.getElementById('comp-pp').textContent  = pp.toFixed(2);
+    document.getElementById('comp-cp').textContent  = cp.toFixed(2);
+    document.getElementById('comp-ppk').textContent = ppk.toFixed(2);
+    document.getElementById('comp-cpk').textContent = cpk.toFixed(2);
+
+    document.getElementById('comp-pp').style.color  = ppInfo.color;
+    document.getElementById('comp-cp').style.color  = capLabel(cp).color;
+    document.getElementById('comp-ppk').style.color = ppkInfo.color;
+    document.getElementById('comp-cpk').style.color = capLabel(cpk).color;
+
+    var stabColor = ratio >= 0.95 ? '#3affb4' : ratio >= 0.85 ? '#f5c518' : '#ff5c5c';
+    document.getElementById('stability-ratio').textContent = ratio.toFixed(2);
+    document.getElementById('stability-ratio').style.color = stabColor;
+    document.getElementById('stability-note').textContent =
+      ratio >= 0.95 ? 'Process is stable — long-term and short-term variation are similar.' :
+      ratio >= 0.85 ? 'Some between-subgroup variation present. Monitor with control charts.' :
+                     'Significant instability detected. Investigate assignable causes urgently.';
+
+    compPanel.style.display = '';
+  } else {
+    compPanel.style.display = 'none';
+  }
+
+  /* Explanation */
+  document.getElementById('explanation-text').textContent =
+    getExplanation(pp, ppk, usl, lsl, mean, s, sw);
+
+  /* Show results */
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('result-panel').classList.add('visible');
+
+  /* Chart */
+  document.getElementById('chart-section').classList.add('visible');
+  buildChart(usl, lsl, mean, s, pp, ppk);
+
+  /* Recommendations */
+  var recs = getRecommendations(pp, ppk, mean, usl, lsl, sw);
+  renderRecs(recs);
+  document.getElementById('improve-section').classList.add('visible');
+}
+
+function resetCalc() {
+  ['usl','lsl','mean','stdev','stdev-within'].forEach(function(id){ var el=document.getElementById(id); el.value=''; el.classList.remove('error'); });
+  ['usl-err','lsl-err','mean-err','stdev-err','stdev-within-err'].forEach(function(id){ document.getElementById(id).classList.remove('visible'); });
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('chart-section').classList.remove('visible');
+  document.getElementById('improve-section').classList.remove('visible');
+  document.getElementById('comparison-panel').style.display = 'none';
+  if (bellChart) { bellChart.destroy(); bellChart = null; }
+}
+
+document.addEventListener('keydown', function(e){ if(e.key==='Enter') calculate(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Cp Cpk Calculator | Short-Term Process Capability | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);
+    line-height:1.45;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+
+  /* ── Header ── */
+  header{
+    border-bottom:1px solid var(--line);
+    background:rgba(4,7,11,.78);
+    backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:20;
+  }
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{
+    content:"";position:absolute;left:0;bottom:-10px;
+    width:0;height:3px;background:var(--accent);
+    border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);
+    transition:width .25s ease;
+  }
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px;
+  }
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{
+    color:var(--accent);font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;font-size:16px;margin-bottom:18px;
+  }
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{
+    background:rgba(216,255,58,.08);
+    border:1px solid rgba(216,255,58,.22);
+    border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap;
+  }
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:15px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+
+  /* ── Layout ── */
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+
+  /* ── Form ── */
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:32px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input{
+    width:100%;border-radius:18px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);
+    color:var(--text);padding:16px 18px;font-size:18px;
+    font-family:inherit;outline:none;
+    transition:border-color .2s ease, background .2s ease;
+    -moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input::placeholder{color:#4d5766}
+  .field input:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  /* ── Buttons ── */
+  .btn-row{display:flex;gap:14px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:18px 28px;border-radius:22px;
+    font-weight:800;font-size:18px;border:1px solid var(--line);
+    transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* ── Results ── */
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px 36px 0 0;
+    box-shadow:var(--shadow);padding:36px;border-bottom:none;
+  }
+  .result-label{
+    font-size:14px;font-weight:700;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:20px;
+  }
+
+  /* Capability status bar */
+  .status-bar{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 18px;border-radius:12px;margin-bottom:20px;
+    border:1px solid;
+  }
+  .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .status-bar-text{font-size:15px;font-weight:800;letter-spacing:.02em}
+  .status-bar-sub{font-size:13px;font-weight:600;margin-left:auto;opacity:.8}
+
+  /* Two big numbers side by side */
+  .result-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+  .result-block{
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--line);border-radius:20px;
+    padding:22px 24px;
+  }
+  .result-block-label{
+    font-size:13px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+  }
+  .result-block-value{
+    font-size:clamp(36px,5vw,54px);font-weight:900;
+    letter-spacing:-.03em;line-height:1;margin-bottom:6px;
+  }
+  .result-block-sub{font-size:14px;color:var(--muted);font-weight:600}
+
+  /* Centering indicator */
+  .centering-row{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 20px;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;
+    margin-bottom:0;
+  }
+  .centering-label{font-size:15px;color:var(--muted);font-weight:600}
+  .centering-value{font-size:17px;font-weight:800;margin-left:auto;letter-spacing:-.01em}
+  .centering-badge{
+    padding:5px 12px;border-radius:999px;
+    font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  }
+
+  .result-explanation{
+    background:rgba(6,10,17,.98);
+    border:1px solid var(--line);border-radius:0 0 36px 36px;
+    padding:28px 36px 36px;
+  }
+  .explanation-title{
+    font-size:15px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+  }
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* ── Empty state ── */
+  .empty-state{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);
+    padding:52px 36px;text-align:center;
+  }
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* ── Bell curve chart section ── */
+  .chart-section{
+    display:none;
+    padding:0 0 0;
+  }
+  .chart-section.visible{display:block}
+  .chart-panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top right, rgba(216,255,58,.06), transparent 30%);
+    border:1px solid var(--line);border-radius:36px;
+    box-shadow:var(--shadow);padding:36px;
+  }
+  .chart-header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    flex-wrap:wrap;gap:16px;margin-bottom:28px;
+  }
+  .chart-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:15px;color:var(--muted)}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted)}
+  .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .legend-line{width:20px;height:3px;border-radius:999px;border-top:2px dashed;flex-shrink:0}
+  .chart-wrap{position:relative;width:100%;height:280px}
+  .chart-wrap canvas{width:100%!important}
+  .chart-note{
+    font-size:13px;color:var(--muted);margin-top:14px;text-align:center;
+    font-weight:600;letter-spacing:.02em;
+  }
+
+  /* ── Improvement guidance section ── */
+  .improve-section{
+    display:none;
+    padding:0 0 48px;
+  }
+  .improve-section.visible{display:block}
+  .improve-panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at bottom left, rgba(216,255,58,.06), transparent 30%);
+    border:1px solid var(--line);border-radius:36px;
+    box-shadow:var(--shadow);padding:36px;
+  }
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{
+    display:flex;gap:14px;
+    background:rgba(255,255,255,.02);border:1px solid var(--line);
+    border-radius:18px;padding:20px 22px;
+  }
+  .rec-icon{
+    width:32px;height:32px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:900;
+  }
+  .rec-body{}
+  .rec-head{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* ── How it works ── */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{
+    width:36px;height:36px;border-radius:10px;
+    background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;margin-bottom:14px;
+  }
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* ── Footer ── */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{
+    border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;
+    background:linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:#b8c0cc;font-size:17px;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.result-pair,.field-row,.rec-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}
+    .formula-badge{display:none}
+    .chart-header{flex-direction:column}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}
+    nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max), calc(100% - 28px))}
+    .btn{min-width:unset}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/cpcpk.html">
+  <meta name="description" content="Free Cp and Cpk calculator. Enter your spec limits, mean and standard deviation to compute short-term process capability and benchmark against the 1.33 / 1.67 thresholds.">
+  <meta name="keywords" content="cp cpk calculator, process capability calculator, short-term capability, cpk formula, six sigma capability, cp vs cpk, capability index UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/cpcpk.html">
+  <meta property="og:title" content="Cp Cpk Calculator | Short-Term Process Capability | SimplicityHub">
+  <meta property="og:description" content="Free Cp and Cpk calculator. Enter your spec limits, mean and standard deviation to compute short-term process capability and benchmark against the 1.33 / 1.67 thresholds.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cp Cpk Calculator | Short-Term Process Capability | SimplicityHub">
+  <meta name="twitter:description" content="Free Cp and Cpk calculator. Enter your spec limits, mean and standard deviation to compute short-term process capability and benchmark against the 1.33 / 1.67 thresholds.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Cp / Cpk Calculator","item":"https://www.simplicityhub.co.uk/pages/cpcpk.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Cp / Cpk Calculator","url":"https://www.simplicityhub.co.uk/pages/cpcpk.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free Cp and Cpk calculator. Enter your spec limits, mean and standard deviation to compute short-term process capability and benchmark against the 1.33 / 1.67 thresholds.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between Cp and Cpk?","acceptedAnswer":{"@type":"Answer","text":"Cp assumes the process is perfectly centred between the spec limits. Cpk takes the smaller of two one-sided capability indices, so it penalises any drift of the mean away from centre. Cp is always greater than or equal to Cpk; they are equal only when the process is perfectly centred."}},{"@type":"Question","name":"What Cpk is considered acceptable?","acceptedAnswer":{"@type":"Answer","text":"1.33 is the standard \"capable\" threshold (≈63 defects per million). 1.67 is highly capable (≈0.6 ppm). 2.0 is the classic six-sigma target (3.4 ppm allowing for the 1.5σ shift). Below 1.0 means the process spread exceeds the spec width — defects are inevitable until variability is reduced."}},{"@type":"Question","name":"What is the difference between Cpk and Ppk?","acceptedAnswer":{"@type":"Answer","text":"Cpk uses the short-term (within-subgroup) standard deviation, capturing only common-cause variation. Ppk uses the overall standard deviation, capturing both within- and between-subgroup variation. Ppk is always less than or equal to Cpk; the gap reveals long-term drift and shift."}},{"@type":"Question","name":"How many measurements do I need for capability analysis?","acceptedAnswer":{"@type":"Answer","text":"A minimum of 30 measurements gives a usable estimate; 100 or more is recommended for a defensible Cpk. The data should come from a process that is in statistical control — capability calculated on an unstable process is meaningless."}},{"@type":"Question","name":"What if my data is not normally distributed?","acceptedAnswer":{"@type":"Answer","text":"Standard Cp/Cpk formulae assume normality. For non-normal data, either transform the data (Box-Cox, Johnson) or use a non-normal capability method (percentile-based Cpk using the 0.135% and 99.865% quantiles). Reporting normal-based Cpk on skewed data understates the defect rate."}}]}</script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <a href="tools.html">Calculators</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Cp / Cpk Calculator</span>
+    </div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Cp / Cpk Calculator</h1>
+        <p class="lead">Measure process capability and centering using Cp and Cpk — so you can see whether your process consistently meets specification limits and where it sits relative to them.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formulas</div>
+        <div class="formula-text">
+          Cp &nbsp;= (USL &minus; LSL) &divide; (6&sigma;)<br>
+          Cpk = min[(USL &minus; &mu;), (&mu; &minus; LSL)] &divide; (3&sigma;)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Calculator ── -->
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field-row">
+            <div class="field">
+              <label for="usl">Upper spec limit (USL)</label>
+              <span class="field-hint">The highest acceptable value</span>
+              <input type="number" id="usl" placeholder="e.g. 10.5" step="any">
+              <span class="field-error" id="usl-err">Enter a valid USL.</span>
+            </div>
+            <div class="field">
+              <label for="lsl">Lower spec limit (LSL)</label>
+              <span class="field-hint">The lowest acceptable value</span>
+              <input type="number" id="lsl" placeholder="e.g. 9.5" step="any">
+              <span class="field-error" id="lsl-err">Enter a valid LSL.</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="mean">Process mean (&mu;)</label>
+              <span class="field-hint">Average output of the process</span>
+              <input type="number" id="mean" placeholder="e.g. 10.1" step="any">
+              <span class="field-error" id="mean-err">Enter a valid process mean.</span>
+            </div>
+            <div class="field">
+              <label for="stdev">Standard deviation (&sigma;)</label>
+              <span class="field-hint">Measure of process variation</span>
+              <input type="number" id="stdev" placeholder="e.g. 0.15" step="any" min="0">
+              <span class="field-error" id="stdev-err">Enter a valid standard deviation (greater than 0).</span>
+            </div>
+          </div>
+
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Result area -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4CF;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your specification limits, process mean and standard deviation on the left, then press Calculate.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <!-- Capability status bar (new) -->
+            <div class="status-bar" id="status-bar">
+              <div class="status-dot" id="status-dot"></div>
+              <span class="status-bar-text" id="status-text"></span>
+              <span class="status-bar-sub" id="status-sub"></span>
+            </div>
+
+            <div class="result-label">Capability results</div>
+
+            <div class="result-pair">
+              <div class="result-block">
+                <div class="result-block-label">Cp — Potential capability</div>
+                <div class="result-block-value" id="cp-value" style="color:var(--accent)">—</div>
+                <div class="result-block-sub" id="cp-label">—</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-label">Cpk — Actual capability</div>
+                <div class="result-block-value" id="cpk-value" style="color:var(--accent)">—</div>
+                <div class="result-block-sub" id="cpk-label">—</div>
+              </div>
+            </div>
+
+            <div class="centering-row">
+              <span class="centering-label">Process centering</span>
+              <span class="centering-value" id="centering-value">—</span>
+              <span class="centering-badge" id="centering-badge"></span>
+            </div>
+          </div>
+
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Bell curve chart (full width, below calc columns) ── -->
+    <div class="chart-section" id="chart-section" style="margin-top:28px">
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Process Distribution vs Specification Limits</div>
+            <div class="chart-subtitle">Normal distribution of your process output relative to USL and LSL</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:rgba(255,92,92,.7)"></div>
+              <span>Defect zone</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:rgba(216,255,58,.35)"></div>
+              <span>Within spec</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:20px;border-top:2px dashed #ff5c5c;flex-shrink:0"></div>
+              <span>LSL / USL</span>
+            </div>
+            <div class="legend-item">
+              <div style="width:20px;border-top:2px dashed #d8ff3a;flex-shrink:0"></div>
+              <span>Mean (&mu;)</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="bell-chart"></canvas>
+        </div>
+        <div class="chart-note" id="chart-note"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Improvement guidance ── -->
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">How to Improve Your Capability</div>
+      <div class="improve-sub">Tailored recommendations based on your Cp and Cpk values</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Cp and Cpk</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">Cp</div>
+        <h4>Potential capability</h4>
+        <p>Cp measures how much of the specification range your process variation occupies — assuming the process is perfectly centred. A Cp of 1.0 means variation exactly fills the spec range. Higher is better.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Cpk</div>
+        <h4>Actual capability</h4>
+        <p>Cpk accounts for where the process mean sits relative to the specification limits. It is always equal to or lower than Cp. A large gap between Cp and Cpk means the process is off-centre.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">&#x2713;</div>
+        <h4>Target values</h4>
+        <p>Most industries require a minimum Cpk of 1.33 for an established process and 1.67 for a new one. A Cpk below 1.0 means the process is producing output outside specification limits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this cp / cpk calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Cp and Cpk are the two most-used short-term process capability indices in Six Sigma. Cp measures the potential capability — how the spread of the process compares to the spread of the specification, assuming the process is perfectly centred. Cpk measures the actual capability, accounting for any drift of the process mean away from the centre of the spec. The formulae use the short-term standard deviation (within-subgroup variation) and require the data to be reasonably normal and stable. This calculator takes your upper and lower spec limits, the process mean, and the short-term standard deviation, and returns Cp, Cpu, Cpl, Cpk, the predicted defect rate per million, and a benchmark against the standard thresholds (1.33 capable, 1.67 highly capable, 2.0 six-sigma).</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator after a capability study (typically 100+ measurements collected from a stable process), before signing off a new product, qualifying a supplier, releasing a process for production, or as the C-step deliverable in a Six Sigma project. It is also the right tool when a customer requires a documented Cpk on every shipped batch.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A bottle-fill process has spec limits of 495-505 ml, a mean of 500.5 ml and a short-term SD of 1.2 ml. Cp = (505 - 495) / (6 × 1.2) = 1.39 (capable on spread). Cpu = (505 - 500.5) / (3 × 1.2) = 1.25; Cpl = (500.5 - 495) / (3 × 1.2) = 1.53. Cpk = min(Cpu, Cpl) = 1.25 — the upper spec is the limiting side because the mean is slightly high. Centring the process on 500 ml would lift Cpk from 1.25 to the full 1.39 with no reduction in variability.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the difference between Cp and Cpk?</summary><p>Cp assumes the process is perfectly centred between the spec limits. Cpk takes the smaller of two one-sided capability indices, so it penalises any drift of the mean away from centre. Cp is always greater than or equal to Cpk; they are equal only when the process is perfectly centred.</p></details>
+      <details class="seo-faq-item"><summary>What Cpk is considered acceptable?</summary><p>1.33 is the standard "capable" threshold (≈63 defects per million). 1.67 is highly capable (≈0.6 ppm). 2.0 is the classic six-sigma target (3.4 ppm allowing for the 1.5σ shift). Below 1.0 means the process spread exceeds the spec width — defects are inevitable until variability is reduced.</p></details>
+      <details class="seo-faq-item"><summary>What is the difference between Cpk and Ppk?</summary><p>Cpk uses the short-term (within-subgroup) standard deviation, capturing only common-cause variation. Ppk uses the overall standard deviation, capturing both within- and between-subgroup variation. Ppk is always less than or equal to Cpk; the gap reveals long-term drift and shift.</p></details>
+      <details class="seo-faq-item"><summary>How many measurements do I need for capability analysis?</summary><p>A minimum of 30 measurements gives a usable estimate; 100 or more is recommended for a defensible Cpk. The data should come from a process that is in statistical control — capability calculated on an unstable process is meaningless.</p></details>
+      <details class="seo-faq-item"><summary>What if my data is not normally distributed?</summary><p>Standard Cp/Cpk formulae assume normality. For non-normal data, either transform the data (Box-Cox, Johnson) or use a non-normal capability method (percentile-based Cpk using the 0.135% and 99.865% quantiles). Reporting normal-based Cpk on skewed data understates the defect rate.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  /* ═══════════════════════════════════════════
+     UTILITY FUNCTIONS
+  ═══════════════════════════════════════════ */
+
+  /* Normal PDF */
+  function normalPDF(x, mean, sd) {
+    var z = (x - mean) / sd;
+    return (1 / (sd * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * z * z);
+  }
+
+  /* ── Capability label by index value ── */
+  function capLabel(v) {
+    if (v < 0.67)  return { text: 'Not capable',        color: '#ff5c5c' };
+    if (v < 1.00)  return { text: 'Poor capability',    color: '#ff7a42' };
+    if (v < 1.33)  return { text: 'Marginal capability',color: '#f5c518' };
+    if (v < 1.67)  return { text: 'Capable',            color: '#8fd14f' };
+    if (v < 2.00)  return { text: 'Very capable',       color: '#d8ff3a' };
+    return               { text: 'World class',         color: '#3affb4' };
+  }
+
+  /* ── Centering assessment ── */
+  function centerLabel(cp, cpk) {
+    var ratio = cpk / cp;
+    if (ratio >= 0.99) return { text: 'Well centred',             badge: 'Centred',     color: '#3affb4', bg: 'rgba(58,255,180,.10)' };
+    if (ratio >= 0.90) return { text: 'Slightly off-centre',      badge: 'Near centre', color: '#d8ff3a', bg: 'rgba(216,255,58,.10)' };
+    if (ratio >= 0.75) return { text: 'Off-centre',               badge: 'Off-centre',  color: '#f5c518', bg: 'rgba(245,197,24,.10)' };
+    return                    { text: 'Significantly off-centre', badge: 'Skewed',      color: '#ff5c5c', bg: 'rgba(255,92,92,.10)' };
+  }
+
+  /* ── Capability status indicator ── */
+  function statusInfo(cpk) {
+    if (cpk < 1.00) return { color:'#ff5c5c', bg:'rgba(255,92,92,.08)', border:'rgba(255,92,92,.25)', text:'Poor capability', sub:'Cpk < 1.00 — process is producing defects' };
+    if (cpk < 1.33) return { color:'#f5c518', bg:'rgba(245,197,24,.08)', border:'rgba(245,197,24,.25)', text:'Marginal capability', sub:'Cpk 1.00–1.33 — borderline; improvement needed' };
+    return                 { color:'#3affb4', bg:'rgba(58,255,180,.08)', border:'rgba(58,255,180,.25)', text:'Capable process', sub:'Cpk ≥ 1.33 — meets standard capability threshold' };
+  }
+
+  /* ── Plain-English explanation ── */
+  function getExplanation(cp, cpk, usl, lsl, mean, stdev) {
+    var cpFmt  = cp.toFixed(2);
+    var cpkFmt = cpk.toFixed(2);
+    var base = 'Cp of ' + cpFmt + ' tells you the process spread uses ' +
+      (100 / cp).toFixed(0) + '% of your specification range ' +
+      (cp >= 1 ? '— there is room within the limits' : '— the process variation exceeds the limits') + '. ';
+    var cpkPart = 'Cpk of ' + cpkFmt;
+    if (cpk < 1.0) return base + cpkPart + ' confirms the process is producing output outside the specification limits. Both centering and variation need to be addressed — reducing standard deviation and moving the mean closer to the midpoint should be the priority.';
+    if (cpk < 1.33) return base + cpkPart + ' means the process is marginally capable but does not meet the common 1.33 threshold. Small shifts in the mean or increases in variation could push output outside limits. Improvement work is recommended before this process is considered reliable.';
+    if (cp - cpk > 0.15) return base + cpkPart + ' shows the process is capable but not well-centred within the specification range. The variation is controlled — the focus should be on moving the process mean closer to the midpoint of ' + ((usl + lsl) / 2).toFixed(4) + ' to maximise the capability margin.';
+    if (cpk < 1.67) return base + cpkPart + ' meets the standard 1.33 minimum and the process is reasonably well-centred. This is acceptable for most established processes. Monitoring with a control chart is recommended to detect any drift.';
+    if (cpk < 2.0) return base + cpkPart + ' is above the 1.67 threshold typically required for new or critical processes. The process is well-controlled and centred. Maintain current controls and continue to monitor for drift over time.';
+    return base + cpkPart + ' indicates world-class capability. The process is highly controlled and well-centred within the specification limits. Focus on sustaining this performance through robust process controls.';
+  }
+
+  /* ── Validate a field ── */
+  function validate(id, errId, condition) {
+    var el  = document.getElementById(id);
+    var err = document.getElementById(errId);
+    var val = parseFloat(el.value);
+    var ok  = !isNaN(val) && condition(val);
+    el.classList.toggle('error', !ok);
+    err.classList.toggle('visible', !ok);
+    return ok ? val : null;
+  }
+
+  /* ═══════════════════════════════════════════
+     CHART
+  ═══════════════════════════════════════════ */
+  var bellChart = null;
+
+  /* Custom plugin: draw vertical dashed lines for LSL, USL, Mean */
+  var verticalLinesPlugin = {
+    id: 'verticalLines',
+    afterDraw: function(chart) {
+      if (!chart.config.options.verticalLines) return;
+      var lines = chart.config.options.verticalLines;
+      var ctx   = chart.ctx;
+      var xAxis = chart.scales.x;
+      var yAxis = chart.scales.y;
+      var top   = yAxis.top;
+      var bottom= yAxis.bottom;
+
+      lines.forEach(function(line) {
+        var xPx = xAxis.getPixelForValue(line.value);
+        if (xPx < xAxis.left || xPx > xAxis.right) return;
+
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = line.color;
+        ctx.lineWidth   = 2;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.moveTo(xPx, top);
+        ctx.lineTo(xPx, bottom);
+        ctx.stroke();
+
+        /* Label */
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle   = line.color;
+        ctx.font        = 'bold 11px Inter, sans-serif';
+        ctx.textAlign   = line.align || 'center';
+        ctx.fillText(line.label, xPx + (line.offsetX || 0), top + 14);
+        ctx.restore();
+      });
+    }
+  };
+
+  Chart.register(verticalLinesPlugin);
+
+  function buildChart(usl, lsl, mean, sd, cp, cpk) {
+    var spread  = Math.max(usl - lsl, sd * 8);
+    var padding = sd * 3.5;
+    var xMin    = Math.min(lsl, mean) - padding;
+    var xMax    = Math.max(usl, mean) + padding;
+    var steps   = 300;
+    var step    = (xMax - xMin) / steps;
+
+    var xs = [];
+    for (var i = 0; i <= steps; i++) xs.push(xMin + i * step);
+
+    var yFull = xs.map(function(x){ return normalPDF(x, mean, sd); });
+
+    /* Three fill datasets: left tail, centre, right tail */
+    var yLeft   = xs.map(function(x, i){ return x <= lsl ? yFull[i] : null; });
+    var yCentre = xs.map(function(x, i){ return (x >= lsl && x <= usl) ? yFull[i] : null; });
+    var yRight  = xs.map(function(x, i){ return x >= usl ? yFull[i] : null; });
+
+    /* Cp / Cpk annotation text positions */
+    var peakY  = normalPDF(mean, mean, sd);
+    var cpkInfo = capLabel(cpk);
+
+    var datasets = [
+      {
+        label: 'Left tail (defect)',
+        data: yLeft,
+        borderColor: 'transparent',
+        backgroundColor: 'rgba(255,92,92,0.30)',
+        fill: 'origin',
+        tension: 0.4,
+        pointRadius: 0,
+        spanGaps: false
+      },
+      {
+        label: 'Within spec',
+        data: yCentre,
+        borderColor: 'transparent',
+        backgroundColor: 'rgba(216,255,58,0.12)',
+        fill: 'origin',
+        tension: 0.4,
+        pointRadius: 0,
+        spanGaps: false
+      },
+      {
+        label: 'Right tail (defect)',
+        data: yRight,
+        borderColor: 'transparent',
+        backgroundColor: 'rgba(255,92,92,0.30)',
+        fill: 'origin',
+        tension: 0.4,
+        pointRadius: 0,
+        spanGaps: false
+      },
+      {
+        label: 'Distribution curve',
+        data: yFull,
+        borderColor: 'rgba(255,255,255,0.60)',
+        backgroundColor: 'transparent',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
+      }
+    ];
+
+    var vLines = [
+      { value: lsl,  color: '#ff5c5c', label: 'LSL',   align: 'left',  offsetX: 4  },
+      { value: usl,  color: '#ff5c5c', label: 'USL',   align: 'right', offsetX: -4 },
+      { value: mean, color: '#d8ff3a', label: '\u03bc', align: 'center',offsetX: 0  }
+    ];
+
+    var noteEl = document.getElementById('chart-note');
+    noteEl.innerHTML =
+      'Cp&nbsp;<strong style="color:' + capLabel(cp).color + '">' + cp.toFixed(2) + '</strong>' +
+      '&ensp;&bull;&ensp;' +
+      'Cpk&nbsp;<strong style="color:' + cpkInfo.color + '">' + cpk.toFixed(2) + '</strong>' +
+      '&ensp;&bull;&ensp;' +
+      'Mean&nbsp;<strong style="color:#d8ff3a">' + mean + '</strong>' +
+      '&ensp;&bull;&ensp;' +
+      'LSL&nbsp;<strong style="color:#ff5c5c">' + lsl + '</strong>' +
+      '&ensp;/&ensp;USL&nbsp;<strong style="color:#ff5c5c">' + usl + '</strong>';
+
+    if (bellChart) {
+      bellChart.data.labels   = xs;
+      bellChart.data.datasets = datasets;
+      bellChart.options.verticalLines = vLines;
+      bellChart.options.scales.x.min = xMin;
+      bellChart.options.scales.x.max = xMax;
+      bellChart.update('active');
+    } else {
+      var ctx = document.getElementById('bell-chart').getContext('2d');
+      bellChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: xs, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 400 },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: xMin,
+              max: xMax,
+              grid: { color: 'rgba(255,255,255,0.05)', drawTicks: false },
+              border: { color: 'rgba(255,255,255,0.10)' },
+              ticks: {
+                color: '#b8c0cc',
+                font: { size: 11, weight: '600' },
+                maxTicksLimit: 8,
+                callback: function(v){ return parseFloat(v.toFixed(4)); }
+              }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)', drawTicks: false },
+              border: { color: 'rgba(255,255,255,0.10)' },
+              ticks: { display: false },
+              beginAtZero: true
+            }
+          },
+          verticalLines: vLines
+        }
+      });
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     IMPROVEMENT RECOMMENDATIONS
+  ═══════════════════════════════════════════ */
+  function getRecommendations(cp, cpk, mean, usl, lsl) {
+    var recs = [];
+    var target = (usl + lsl) / 2;
+    var offset = mean - target;
+
+    /* 1. High variation (Cp below threshold) */
+    if (cp < 1.33) {
+      recs.push({
+        icon: '&#x2193;',
+        iconBg: 'rgba(255,92,92,.12)',
+        iconColor: '#ff5c5c',
+        head: 'Reduce process variation',
+        text: 'Your Cp of ' + cp.toFixed(2) + ' means process spread is too wide for the spec range. Implement standard work, calibrate equipment, and use error-proofing (poka-yoke) to reduce the standard deviation. Even small reductions in variation have a large effect on Cp.'
+      });
+    }
+
+    /* 2. Off-centre process (gap between Cp and Cpk) */
+    if (cp - cpk > 0.10) {
+      var dir = offset > 0 ? 'lower' : 'higher';
+      var adj = Math.abs(offset).toFixed(4);
+      recs.push({
+        icon: '&#x2194;',
+        iconBg: 'rgba(245,197,24,.12)',
+        iconColor: '#f5c518',
+        head: 'Centre the process mean',
+        text: 'Your process mean is ' + adj + ' units ' + (offset > 0 ? 'above' : 'below') + ' the specification midpoint (' + target.toFixed(4) + '). Adjust the process setpoint ' + dir + ' to close this gap. Centering alone — without changing variation — will raise your Cpk toward your Cp.'
+      });
+    }
+
+    /* 3. Cpk < 1.0 — process producing defects */
+    if (cpk < 1.0) {
+      recs.push({
+        icon: '&#x26A0;',
+        iconBg: 'rgba(255,92,92,.12)',
+        iconColor: '#ff5c5c',
+        head: 'Contain defects immediately',
+        text: 'A Cpk below 1.0 means the process is actively producing output outside the specification limits. Before focusing on long-term improvement, put containment measures in place — 100% inspection or sorting — to prevent non-conforming product from reaching the next stage or the customer.'
+      });
+    }
+
+    /* 4. Marginal (1.0 ≤ Cpk < 1.33) — borderline */
+    if (cpk >= 1.0 && cpk < 1.33) {
+      recs.push({
+        icon: '&#x1F4CA;',
+        iconBg: 'rgba(245,197,24,.12)',
+        iconColor: '#f5c518',
+        head: 'Add Statistical Process Control',
+        text: 'A Cpk of ' + cpk.toFixed(2) + ' is borderline. At this level, normal process drift can quickly push the process out of spec. Introduce control charts (X-bar & R or I-MR) to detect shifts early and respond before defects are produced.'
+      });
+    }
+
+    /* 5. Capable and centred — sustain */
+    if (cp >= 1.33 && cpk >= 1.33 && cp - cpk <= 0.10) {
+      recs.push({
+        icon: '&#x2713;',
+        iconBg: 'rgba(58,255,180,.12)',
+        iconColor: '#3affb4',
+        head: 'Sustain with control charts',
+        text: 'Your process is capable and well-centred. The priority now is sustaining this performance. Monitor the process using control charts to detect any drift in the mean or increase in variation before it affects capability. Review the control plan regularly.'
+      });
+    }
+
+    /* 6. Very capable — stretch goal */
+    if (cpk >= 1.67) {
+      recs.push({
+        icon: '&#x1F3AF;',
+        iconBg: 'rgba(216,255,58,.12)',
+        iconColor: '#d8ff3a',
+        head: 'Consider tightening tolerances',
+        text: 'With a Cpk of ' + cpk.toFixed(2) + ' you have significant margin beyond the specification limits. If reducing variation further enables cost savings or product improvements, consider tightening internal working limits or exploring design improvements that take advantage of this capability.'
+      });
+    }
+
+    /* 7. Cp ok but Cpk not matching — variation is fine, centring is the issue */
+    if (cp >= 1.33 && cpk < 1.33) {
+      recs.push({
+        icon: '&#x1F527;',
+        iconBg: 'rgba(255,140,66,.12)',
+        iconColor: '#ff8c42',
+        head: 'Focus on centering, not variation',
+        text: 'Your Cp of ' + cp.toFixed(2) + ' shows variation is well-controlled — the process spread fits within the specification range. The limiting factor is centering. Prioritise adjusting the process mean toward ' + target.toFixed(4) + ' before attempting any variation reduction work.'
+      });
+    }
+
+    return recs;
+  }
+
+  function renderRecommendations(recs) {
+    var grid = document.getElementById('rec-grid');
+    grid.innerHTML = '';
+    recs.forEach(function(r) {
+      var div = document.createElement('div');
+      div.className = 'rec-item';
+      div.innerHTML =
+        '<div class="rec-icon" style="background:' + r.iconBg + ';color:' + r.iconColor + '">' + r.icon + '</div>' +
+        '<div class="rec-body">' +
+          '<div class="rec-head">' + r.head + '</div>' +
+          '<p class="rec-text">' + r.text + '</p>' +
+        '</div>';
+      grid.appendChild(div);
+    });
+  }
+
+  /* ═══════════════════════════════════════════
+     MAIN CALCULATE
+  ═══════════════════════════════════════════ */
+  function calculate() {
+    var usl  = validate('usl',   'usl-err',  function(v){ return true; });
+    var lsl  = validate('lsl',   'lsl-err',  function(v){ return true; });
+    var mean = validate('mean',  'mean-err', function(v){ return true; });
+    var sd   = validate('stdev', 'stdev-err',function(v){ return v > 0; });
+
+    if (usl === null || lsl === null || mean === null || sd === null) return;
+
+    if (usl <= lsl) {
+      document.getElementById('usl').classList.add('error');
+      document.getElementById('usl-err').textContent = 'USL must be greater than LSL.';
+      document.getElementById('usl-err').classList.add('visible');
+      return;
+    }
+    document.getElementById('usl-err').textContent = 'Enter a valid USL.';
+
+    var cp  = (usl - lsl) / (6 * sd);
+    var cpu = (usl - mean) / (3 * sd);
+    var cpl = (mean - lsl) / (3 * sd);
+    var cpk = Math.min(cpu, cpl);
+
+    var cpInfo  = capLabel(cp);
+    var cpkInfo = capLabel(cpk);
+    var centre  = centerLabel(cp, cpk);
+    var status  = statusInfo(cpk);
+
+    /* ── Status bar ── */
+    var sBar = document.getElementById('status-bar');
+    sBar.style.background  = status.bg;
+    sBar.style.borderColor = status.border;
+    document.getElementById('status-dot').style.background  = status.color;
+    document.getElementById('status-text').textContent       = status.text;
+    document.getElementById('status-text').style.color       = status.color;
+    document.getElementById('status-sub').textContent        = status.sub;
+
+    /* ── Cp / Cpk values ── */
+    document.getElementById('cp-value').textContent   = cp.toFixed(2);
+    document.getElementById('cp-value').style.color   = cpInfo.color;
+    document.getElementById('cp-label').textContent   = cpInfo.text;
+    document.getElementById('cp-label').style.color   = cpInfo.color;
+
+    document.getElementById('cpk-value').textContent  = cpk.toFixed(2);
+    document.getElementById('cpk-value').style.color  = cpkInfo.color;
+    document.getElementById('cpk-label').textContent  = cpkInfo.text;
+    document.getElementById('cpk-label').style.color  = cpkInfo.color;
+
+    /* ── Centering ── */
+    document.getElementById('centering-value').textContent = centre.text;
+    document.getElementById('centering-value').style.color = centre.color;
+    var badge = document.getElementById('centering-badge');
+    badge.textContent      = centre.badge;
+    badge.style.color      = centre.color;
+    badge.style.background = centre.bg;
+    badge.style.border     = '1px solid ' + centre.color;
+
+    /* ── Explanation ── */
+    document.getElementById('explanation-text').textContent =
+      getExplanation(cp, cpk, usl, lsl, mean, sd);
+
+    /* ── Show results ── */
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('result-panel').classList.add('visible');
+
+    /* ── Bell curve chart ── */
+    document.getElementById('chart-section').classList.add('visible');
+    buildChart(usl, lsl, mean, sd, cp, cpk);
+
+    /* ── Improvement recommendations ── */
+    var recs = getRecommendations(cp, cpk, mean, usl, lsl);
+    renderRecommendations(recs);
+    document.getElementById('improve-section').classList.add('visible');
+  }
+
+  /* ── Reset ── */
+  function resetCalc() {
+    ['usl','lsl','mean','stdev'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.value = '';
+      el.classList.remove('error');
+    });
+    ['usl-err','lsl-err','mean-err','stdev-err'].forEach(function(id) {
+      document.getElementById(id).classList.remove('visible');
+    });
+    document.getElementById('result-panel').classList.remove('visible');
+    document.getElementById('empty-state').style.display = '';
+    document.getElementById('chart-section').classList.remove('visible');
+    document.getElementById('improve-section').classList.remove('visible');
+    if (bellChart) { bellChart.destroy(); bellChart = null; }
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', function(e){ if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>

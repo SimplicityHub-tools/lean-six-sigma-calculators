@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Process Cycle Efficiency Calculator | PCE | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/pce.html">
+  <meta name="description" content="Free Process Cycle Efficiency (PCE) calculator. Divide value-add time by total lead time to see how much of your process actually creates value for the customer.">
+  <meta name="keywords" content="process cycle efficiency calculator, PCE calculator, value-add time ratio, lean PCE, value stream efficiency, lead time efficiency UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/pce.html">
+  <meta property="og:title" content="Process Cycle Efficiency Calculator | PCE | SimplicityHub">
+  <meta property="og:description" content="Free Process Cycle Efficiency (PCE) calculator. Divide value-add time by total lead time to see how much of your process actually creates value for the customer.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Process Cycle Efficiency Calculator | PCE | SimplicityHub">
+  <meta name="twitter:description" content="Free Process Cycle Efficiency (PCE) calculator. Divide value-add time by total lead time to see how much of your process actually creates value for the customer.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Process Cycle Efficiency Calculator","item":"https://www.simplicityhub.co.uk/pages/pce.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Process Cycle Efficiency Calculator","url":"https://www.simplicityhub.co.uk/pages/pce.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free Process Cycle Efficiency (PCE) calculator. Divide value-add time by total lead time to see how much of your process actually creates value for the customer.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is a good Process Cycle Efficiency?","acceptedAnswer":{"@type":"Answer","text":"1-5% is typical for untouched processes. 10-25% is achievable with good Lean practice (kanban, line balancing, small batches). 30%+ requires single-piece flow and is rare outside dedicated cells. Anything above 50% is exceptional and usually indicates a continuous-process operation."}},{"@type":"Question","name":"What counts as value-add time?","acceptedAnswer":{"@type":"Answer","text":"Any activity the customer would pay for — physical transformation, assembly, machining, plating, packing, useful design or analytical work. Inspection, transport, queuing, rework and approvals do not count. The acid test: would the customer notice (and complain) if you stopped doing it?"}},{"@type":"Question","name":"How is PCE different from value-add ratio?","acceptedAnswer":{"@type":"Answer","text":"They are the same metric, just different names. Some Lean texts use \"value-add ratio\" or \"flow efficiency\". All three measure the same ratio and give the same number. Pick one term and stick with it across reports to avoid confusing your audience."}},{"@type":"Question","name":"How do I improve PCE quickly?","acceptedAnswer":{"@type":"Answer","text":"Attack the largest queues first — usually the work-in-process pool in front of the slowest step. Reduce batch sizes, level the schedule, balance the line, and cut approval and inspection waits. PCE typically doubles or triples in the first six months of a focused flow programme."}},{"@type":"Question","name":"Why is PCE more useful than utilisation?","acceptedAnswer":{"@type":"Answer","text":"Utilisation measures how busy each resource is; PCE measures how fast a unit moves through the value stream. High utilisation usually destroys PCE (because it builds queues), and chasing utilisation as a KPI is the single most common cause of long lead times in practice."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Process Cycle Efficiency Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Lean &amp; Planning</div>
+        <h1>Process Cycle Efficiency Calculator</h1>
+        <p class="lead">Reveal how much of your total lead time is actually adding value vs sitting in queues, waits and rework — with a clear PCE percentage and a benchmark against world-class lean processes.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">PCE = Value-Added Time &divide; Total Lead Time × 100%</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="va-time">Value-added time</label>
+            <span class="field-hint">Time spent actually transforming the product or service — what the customer would pay for</span>
+            <div class="input-with-unit" id="va-wrap">
+              <input type="number" id="va-time" placeholder="e.g. 30" min="0" step="any">
+              <select class="unit-select" id="va-unit">
+                <option value="seconds">seconds</option>
+                <option value="minutes" selected>minutes</option>
+                <option value="hours">hours</option>
+                <option value="days">days</option>
+              </select>
+            </div>
+            <span class="field-error" id="va-err">Enter a valid value-added time (greater than 0).</span>
+          </div>
+          <div class="field">
+            <label for="lt-time">Total lead time</label>
+            <span class="field-hint">Total elapsed time from start to finish — including all waits, queues and handoffs</span>
+            <div class="input-with-unit" id="lt-wrap">
+              <input type="number" id="lt-time" placeholder="e.g. 5" min="0" step="any">
+              <select class="unit-select" id="lt-unit">
+                <option value="seconds">seconds</option>
+                <option value="minutes">minutes</option>
+                <option value="hours">hours</option>
+                <option value="days" selected>days</option>
+              </select>
+            </div>
+            <span class="field-error" id="lt-err">Enter a valid lead time (greater than 0).</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x2696;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Process Cycle Efficiency</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">percent</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Non-value-added time</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">World-class gap</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">PCE vs world-class (25%)</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Process Cycle Efficiency</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>What counts as value-added</h4><p>Value-added time is any activity that physically transforms the product or service in a way the customer would pay for. Inspection, transport, waiting, rework and storage are all non-value-added — even though they may feel necessary.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>Typical PCE benchmarks</h4><p>Most untouched processes run at 1-5% PCE. Lean improvements typically reach 10-25%. World-class continuous-flow operations exceed 25%. Even a 1% PCE means there's enormous room to compress lead time without adding capacity.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>How to lift PCE</h4><p>The fastest way is not to make value-added work faster — it's to remove non-value-added time. Cut batch sizes, reduce changeovers, eliminate handoffs, and limit WIP. Lead time falls and PCE climbs without changing the work itself.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this process cycle efficiency calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Process Cycle Efficiency (PCE) is the single cleanest measure of Lean maturity for any process. The formula is simple: value-add time divided by total lead time, expressed as a percentage. Value-add time is the total time spent on activities the customer would pay for (transformation, assembly, machining); lead time is the total elapsed time from start to finish, including every queue, batch wait, inspection, transport and approval. This calculator takes both inputs and returns the PCE percentage along with a benchmark band: typical untouched processes sit at 1-5%, well-managed Lean operations reach 10-25%, and world-class single-piece-flow cells can hit 30%+. The number is unforgiving and that is the point — it strips out the optimism that hides in process maps.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator at the start of any value-stream improvement programme, after each kaizen wave to measure progress, when comparing two value streams, or when reporting Lean maturity to leadership. It is also the right tool when an operations team claims their process is "already Lean" — measuring PCE honestly almost always exposes 10-50× more improvement headroom than expected.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A six-step process has total value-add time of 39 minutes and total lead time of 17.7 hours (1,059 minutes). PCE = 39 ÷ 1,059 = 3.7%. The remaining 96.3% of lead time is non-value-add — queues, waits, batches, inspections. Halving the largest queue would lift PCE from 3.7% to about 4.6%. Achieving single-piece flow across all six steps could lift it to 25%+ without speeding up any individual step. The headline number is what makes leadership take queue-attack seriously.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is a good Process Cycle Efficiency?</summary><p>1-5% is typical for untouched processes. 10-25% is achievable with good Lean practice (kanban, line balancing, small batches). 30%+ requires single-piece flow and is rare outside dedicated cells. Anything above 50% is exceptional and usually indicates a continuous-process operation.</p></details>
+      <details class="seo-faq-item"><summary>What counts as value-add time?</summary><p>Any activity the customer would pay for — physical transformation, assembly, machining, plating, packing, useful design or analytical work. Inspection, transport, queuing, rework and approvals do not count. The acid test: would the customer notice (and complain) if you stopped doing it?</p></details>
+      <details class="seo-faq-item"><summary>How is PCE different from value-add ratio?</summary><p>They are the same metric, just different names. Some Lean texts use "value-add ratio" or "flow efficiency". All three measure the same ratio and give the same number. Pick one term and stick with it across reports to avoid confusing your audience.</p></details>
+      <details class="seo-faq-item"><summary>How do I improve PCE quickly?</summary><p>Attack the largest queues first — usually the work-in-process pool in front of the slowest step. Reduce batch sizes, level the schedule, balance the line, and cut approval and inspection waits. PCE typically doubles or triples in the first six months of a focused flow programme.</p></details>
+      <details class="seo-faq-item"><summary>Why is PCE more useful than utilisation?</summary><p>Utilisation measures how busy each resource is; PCE measures how fast a unit moves through the value stream. High utilisation usually destroys PCE (because it builds queues), and chasing utilisation as a KPI is the single most common cause of long lead times in practice.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function toSec(v,u){return u==='seconds'?v:u==='minutes'?v*60:u==='hours'?v*3600:v*86400}
+function calculate(){
+  var va=parseFloat(document.getElementById('va-time').value),lt=parseFloat(document.getElementById('lt-time').value);
+  var vaU=document.getElementById('va-unit').value, ltU=document.getElementById('lt-unit').value;
+  var vaOk=!isNaN(va)&&va>0, ltOk=!isNaN(lt)&&lt>0;
+  document.getElementById('va-wrap').classList.toggle('error',!vaOk);document.getElementById('va-err').classList.toggle('visible',!vaOk);
+  document.getElementById('lt-wrap').classList.toggle('error',!ltOk);document.getElementById('lt-err').classList.toggle('visible',!ltOk);
+  if(!vaOk||!ltOk)return;
+  var vaS=toSec(va,vaU), ltS=toSec(lt,ltU);
+  if(vaS>ltS){document.getElementById('va-wrap').classList.add('error');document.getElementById('va-err').textContent='Value-added time cannot exceed total lead time.';document.getElementById('va-err').classList.add('visible');return;}
+  document.getElementById('va-err').textContent='Enter a valid value-added time (greater than 0).';
+  var pce=(vaS/ltS)*100, nva=ltS-vaS;
+  document.getElementById('main-value').textContent=pce.toFixed(2)+'%';document.getElementById('main-unit').textContent='of total lead time is value-added';
+  function fmtTime(s){if(s<90)return s.toFixed(1)+' sec';if(s<5400)return (s/60).toFixed(1)+' min';if(s<86400)return (s/3600).toFixed(2)+' hr';return (s/86400).toFixed(2)+' days';}
+  document.getElementById('metric-a').textContent=fmtTime(nva);
+  var gap=Math.max(0,25-pce); document.getElementById('metric-b').textContent=gap.toFixed(1)+' pts';
+  var pacePct=Math.min(100,(pce/25)*100);
+  document.getElementById('pace-fill').style.width=Math.max(4,pacePct).toFixed(1)+'%';
+  var verdict;
+  if(pce<2)verdict='At under 2% PCE, this process is dominated by waiting and queues — typical of unimproved batch operations. ';
+  else if(pce<10)verdict='At '+pce.toFixed(1)+'% PCE, this process has typical untouched-process efficiency. ';
+  else if(pce<25)verdict='At '+pce.toFixed(1)+'% PCE, this process has had some lean improvement applied. ';
+  else verdict='At '+pce.toFixed(1)+'% PCE, this process is approaching world-class continuous flow. ';
+  document.getElementById('pace-label-text').textContent=pce>=25?'World-class':pce>=10?'Improving':'Untouched';
+  document.getElementById('explanation-text').textContent=verdict+'Out of '+fmtTime(ltS)+' total lead time, only '+fmtTime(vaS)+' is value-added — the remaining '+fmtTime(nva)+' is waste. Cutting non-value-added time is the fastest way to lift PCE and shorten lead time.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){['va-time','lt-time'].forEach(function(id){document.getElementById(id).value=''});['va-wrap','lt-wrap'].forEach(function(id){document.getElementById(id).classList.remove('error')});['va-err','lt-err'].forEach(function(id){document.getElementById(id).classList.remove('visible')});document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+function updateResultUnit(){if(document.getElementById('result-panel').classList.contains('visible'))calculate()}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>

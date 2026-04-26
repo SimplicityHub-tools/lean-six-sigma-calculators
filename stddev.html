@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Standard Deviation Calculator | Sample & Population | SimplicityHub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --text:#f3f5f7;--muted:#b8c0cc;--line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;--shadow:0 20px 50px rgba(0,0,0,.35);--max:1240px;
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:radial-gradient(circle at left 30%,rgba(216,255,58,.08),transparent 24%),
+    linear-gradient(180deg,#05070b 0%,#07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max),calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;transition:width .25s}
+  nav a:hover::after,nav a.active::after{width:100%}nav a.active{color:var(--accent)}
+
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}.breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:13px;font-weight:700;color:var(--accent);font-family:monospace;letter-spacing:.02em;line-height:2.2}
+
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .panel-sub{font-size:14px;color:var(--muted);margin:0 0 24px}
+
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field textarea{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;resize:vertical;min-height:140px;line-height:1.6}
+  .field textarea::placeholder{color:#4d5766}
+  .field textarea:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field textarea.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  /* Toggle */
+  .toggle-row{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;margin-bottom:20px}
+  .toggle-btn{flex:1;padding:10px 12px;border-radius:10px;border:none;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s,color .2s;color:var(--muted);background:transparent}
+  .toggle-btn.active{background:rgba(216,255,58,.15);color:var(--accent);border:1px solid rgba(216,255,58,.3)}
+
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* Results */
+  .empty-state{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top left,rgba(216,255,58,.08),transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;padding:36px;border-bottom:none}
+  .result-label{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+
+  /* Primary result */
+  .primary-result{display:flex;align-items:flex-start;gap:20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:18px}
+  .primary-result-main{flex:1}
+  .primary-result-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .primary-result-value{font-size:clamp(40px,6vw,64px);font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--accent)}
+  .primary-result-sub{font-size:14px;color:var(--muted);margin-top:6px;font-weight:600}
+  .primary-result-badge{padding:8px 16px;border-radius:12px;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;align-self:flex-start;margin-top:4px}
+
+  /* Stats grid */
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .stat-box{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:center}
+  .stat-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .stat-value{font-size:18px;font-weight:900;letter-spacing:-.02em}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600}
+
+  /* σ zone row */
+  .zone-row{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:2px}
+  .zone-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .zone-bars{display:flex;flex-direction:column;gap:8px}
+  .zone-bar{display:flex;align-items:center;gap:12px}
+  .zone-bar-label{font-size:13px;font-weight:700;color:var(--muted);width:32px;flex-shrink:0}
+  .zone-bar-track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+  .zone-bar-fill{height:100%;border-radius:99px;transition:width .5s ease}
+  .zone-bar-pct{font-size:13px;font-weight:800;width:48px;text-align:right;flex-shrink:0}
+  .zone-bar-expected{font-size:12px;color:var(--muted);font-weight:600;width:44px;flex-shrink:0}
+
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:18px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* Charts */
+  .charts-section{display:none;margin-top:28px}
+  .charts-section.visible{display:grid;grid-template-columns:1fr;gap:24px}
+  .chart-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at top right,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .chart-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .chart-title{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .chart-subtitle{font-size:14px;color:var(--muted)}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted)}
+  .chart-wrap{position:relative;width:100%;height:260px}
+
+  /* Z-score table section */
+  .zscore-section{display:none;margin-top:28px}
+  .zscore-section.visible{display:block}
+  .zscore-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98));border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .zscore-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+  .zscore-title{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .zscore-sub{font-size:14px;color:var(--muted);margin-top:4px}
+  .table-scroll{overflow-x:auto;border-radius:16px;border:1px solid var(--line)}
+  .zscore-table{width:100%;border-collapse:collapse;font-size:14px}
+  .zscore-table th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap;background:rgba(255,255,255,.02)}
+  .zscore-table td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-weight:600}
+  .zscore-table tr:last-child td{border-bottom:none}
+  .zscore-table tr:hover td{background:rgba(255,255,255,.02)}
+  .z-bar-cell{min-width:120px}
+  .z-bar-inner{height:6px;border-radius:99px;min-width:2px}
+  .outlier-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(255,140,66,.15);color:#ff8c42;border:1px solid rgba(255,140,66,.3)}
+  .table-limit-note{font-size:13px;color:var(--muted);text-align:center;padding:14px;font-weight:600}
+
+  /* Improvement */
+  .improve-section{display:none;padding:0 0 48px}
+  .improve-section.visible{display:block}
+  .improve-panel{background:linear-gradient(180deg,rgba(14,20,32,.94),rgba(6,10,17,.98)),radial-gradient(circle at bottom left,rgba(216,255,58,.06),transparent 30%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .improve-title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+  .improve-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+  .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .rec-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:18px;padding:20px 22px}
+  .rec-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+  .rec-head{font-size:15px;font-weight:800;margin-bottom:5px}
+  .rec-text{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+
+  /* How it works */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}.footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg,#05070b 0%,#07101d 100%);color:#b8c0cc;font-size:17px;font-family:inherit}
+
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.stats-grid,.rec-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}.formula-badge{display:none}
+    .primary-result{flex-direction:column}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max),calc(100% - 28px))}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/stddev.html">
+  <meta name="description" content="Free standard deviation calculator. Paste raw values to compute sample SD, population SD, variance, mean, range and coefficient of variation.">
+  <meta name="keywords" content="standard deviation calculator, sample SD, population SD, variance calculator, coefficient of variation, statistics calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/stddev.html">
+  <meta property="og:title" content="Standard Deviation Calculator | Sample & Population | SimplicityHub">
+  <meta property="og:description" content="Free standard deviation calculator. Paste raw values to compute sample SD, population SD, variance, mean, range and coefficient of variation.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Standard Deviation Calculator | Sample & Population | SimplicityHub">
+  <meta name="twitter:description" content="Free standard deviation calculator. Paste raw values to compute sample SD, population SD, variance, mean, range and coefficient of variation.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Standard Deviation Calculator","item":"https://www.simplicityhub.co.uk/pages/stddev.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Standard Deviation Calculator","url":"https://www.simplicityhub.co.uk/pages/stddev.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free standard deviation calculator. Paste raw values to compute sample SD, population SD, variance, mean, range and coefficient of variation.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between sample and population SD?","acceptedAnswer":{"@type":"Answer","text":"Sample SD divides by n-1 (Bessel correction) and is the right choice whenever your data is a sample drawn from a larger population — which is almost every real-world dataset. Population SD divides by n and is only used when you have measured every member of the population."}},{"@type":"Question","name":"How does standard deviation differ from variance?","acceptedAnswer":{"@type":"Answer","text":"Variance is the average squared deviation from the mean; standard deviation is its square root. SD is in the same units as the original data (grams, seconds, pounds), which makes it easier to interpret. Variance is more useful in formulae because variances of independent variables add."}},{"@type":"Question","name":"What is the coefficient of variation used for?","acceptedAnswer":{"@type":"Answer","text":"CV (SD ÷ mean × 100%) is a unit-free measure of relative variability, useful for comparing the spread of two processes that operate at different scales. CV < 10% is tight; 10-30% is moderate; > 30% indicates a process where variability dominates the mean."}},{"@type":"Question","name":"Is SD affected by outliers?","acceptedAnswer":{"@type":"Answer","text":"Yes — strongly. A single extreme value can inflate the SD by 50% or more on a small sample, because deviations are squared before averaging. For data with known outliers, use the median absolute deviation (MAD) or the IQR as a robust alternative measure of spread."}},{"@type":"Question","name":"How do I interpret SD on a normal distribution?","acceptedAnswer":{"@type":"Answer","text":"For normal data, about 68% of values fall within ±1 SD of the mean, 95% within ±2 SD and 99.7% within ±3 SD. This empirical rule is the basis of control limits, capability indices and Six Sigma defect-rate calculations — and only holds when the data is approximately normal."}}]}</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a><a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a><a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a><a href="about.html">About</a>
+      <a href="contact.html">Contact</a><a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>Standard Deviation Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Statistics</div>
+        <h1>Standard Deviation Calculator</h1>
+        <p class="lead">Paste your data to calculate sample or population standard deviation — with variance, coefficient of variation, z-scores, σ-zone breakdown, and a histogram with normal curve overlay.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formulas</div>
+        <div class="formula-text">
+          s = &radic;[&Sigma;(x&minus;x&#772;)&sup2; / (n&minus;1)]<br>
+          &sigma; = &radic;[&Sigma;(x&minus;&mu;)&sup2; / n]<br>
+          CV = (s / x&#772;) &times; 100%<br>
+          z = (x &minus; x&#772;) / s
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <div class="panel">
+        <h2 class="panel-title">Enter your data</h2>
+        <p class="panel-sub">Paste numeric values separated by commas, spaces, or new lines. Minimum 2 values required.</p>
+
+        <div style="margin-bottom:6px;font-size:15px;font-weight:700;color:#dfe4eb">Standard deviation type</div>
+        <div class="toggle-row">
+          <button class="toggle-btn active" id="btn-sample" onclick="setType('sample')">Sample (n&minus;1)</button>
+          <button class="toggle-btn" id="btn-pop" onclick="setType('population')">Population (n)</button>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin:-12px 0 20px" id="type-hint">Use <strong style="color:var(--text)">sample</strong> when your data is a subset of a larger process (most common in quality work).</div>
+
+        <div class="field">
+          <label for="data-input">Data values</label>
+          <span class="field-hint">Separate by commas, spaces, tabs, or new lines</span>
+          <textarea id="data-input" placeholder="e.g.&#10;12.3, 14.1, 11.8, 15.0, 13.4&#10;12.9, 16.2, 11.5, 13.8, 14.7"></textarea>
+          <span class="field-error" id="data-err">Enter at least 2 valid numeric values.</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4D0;</div>
+          <h3>Ready to calculate</h3>
+          <p>Choose sample or population standard deviation, paste your data, and press Calculate to see the full breakdown.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+
+            <div class="primary-result">
+              <div class="primary-result-main">
+                <div class="primary-result-label" id="sd-label">Sample standard deviation (s)</div>
+                <div class="primary-result-value" id="sd-value">—</div>
+                <div class="primary-result-sub" id="sd-sub">—</div>
+              </div>
+              <span class="primary-result-badge" id="cv-badge"></span>
+            </div>
+
+            <div class="result-label">Descriptive statistics</div>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-label">Mean</div>
+                <div class="stat-value" id="stat-mean">—</div>
+                <div class="stat-sub">Average (x̄)</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Median</div>
+                <div class="stat-value" id="stat-median">—</div>
+                <div class="stat-sub">50th percentile</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Variance</div>
+                <div class="stat-value" id="stat-var">—</div>
+                <div class="stat-sub" id="var-sub">s²</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">CV</div>
+                <div class="stat-value" id="stat-cv">—</div>
+                <div class="stat-sub">Coeff. of variation</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Std error</div>
+                <div class="stat-value" id="stat-se">—</div>
+                <div class="stat-sub">SE of mean</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">n</div>
+                <div class="stat-value" id="stat-n">—</div>
+                <div class="stat-sub">Count</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Min</div>
+                <div class="stat-value" id="stat-min">—</div>
+                <div class="stat-sub">Minimum value</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Max</div>
+                <div class="stat-value" id="stat-max">—</div>
+                <div class="stat-sub">Maximum value</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Range</div>
+                <div class="stat-value" id="stat-range">—</div>
+                <div class="stat-sub">Max − Min</div>
+              </div>
+            </div>
+
+            <!-- σ zone breakdown -->
+            <div class="zone-row" style="margin-top:14px">
+              <div class="zone-title">Data within σ zones (empirical rule check)</div>
+              <div class="zone-bars">
+                <div class="zone-bar">
+                  <div class="zone-bar-label">±1σ</div>
+                  <div class="zone-bar-track"><div class="zone-bar-fill" id="z1-fill" style="background:rgba(216,255,58,.6)"></div></div>
+                  <div class="zone-bar-pct" id="z1-pct" style="color:#d8ff3a">—</div>
+                  <div class="zone-bar-expected">~68%</div>
+                </div>
+                <div class="zone-bar">
+                  <div class="zone-bar-label">±2σ</div>
+                  <div class="zone-bar-track"><div class="zone-bar-fill" id="z2-fill" style="background:rgba(216,255,58,.4)"></div></div>
+                  <div class="zone-bar-pct" id="z2-pct" style="color:#d8ff3a">—</div>
+                  <div class="zone-bar-expected">~95%</div>
+                </div>
+                <div class="zone-bar">
+                  <div class="zone-bar-label">±3σ</div>
+                  <div class="zone-bar-track"><div class="zone-bar-fill" id="z3-fill" style="background:rgba(216,255,58,.2)"></div></div>
+                  <div class="zone-bar-pct" id="z3-pct" style="color:#d8ff3a">—</div>
+                  <div class="zone-bar-expected">~99.7%</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histogram -->
+    <div class="charts-section" id="charts-section">
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Frequency Distribution with Normal Curve</div>
+            <div class="chart-subtitle">Histogram of your data overlaid with a normal curve based on the calculated mean and standard deviation</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div style="width:14px;height:14px;background:rgba(216,255,58,.3);border-radius:2px"></div><span>Frequency</span></div>
+            <div class="legend-item"><div style="width:20px;border-top:2px solid rgba(255,255,255,.5)"></div><span>Normal curve</span></div>
+            <div class="legend-item"><div style="width:20px;border-top:2px dashed #d8ff3a"></div><span>Mean</span></div>
+            <div class="legend-item"><div style="width:20px;border-top:2px dashed #ff5c5c"></div><span>±1σ / ±2σ</span></div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="hist-chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Z-score table -->
+    <div class="zscore-section" id="zscore-section">
+      <div class="zscore-panel">
+        <div class="zscore-header">
+          <div>
+            <div class="zscore-title">Z-Score Table</div>
+            <div class="zscore-sub">How many standard deviations each value lies from the mean</div>
+          </div>
+          <span id="zscore-count" style="font-size:14px;color:var(--muted);font-weight:600"></span>
+        </div>
+        <div class="table-scroll">
+          <table class="zscore-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Value</th>
+                <th>Deviation (x &minus; x̄)</th>
+                <th>Z-score</th>
+                <th>Visual</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="zscore-tbody"></tbody>
+          </table>
+          <div class="table-limit-note" id="table-note" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="improve-section" id="improve-section">
+  <div class="wrap">
+    <div class="improve-panel">
+      <div class="improve-title">How to Use Standard Deviation</div>
+      <div class="improve-sub">Practical interpretation and next steps based on your results</div>
+      <div class="rec-grid" id="rec-grid"></div>
+    </div>
+  </div>
+</section>
+
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 28px">Understanding standard deviation</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">s</div>
+        <h4>Sample vs population</h4>
+        <p>Use sample (n−1) when your data is a sample drawn from a larger process — which is almost always the case in quality and manufacturing. Use population (n) only when you have every single data point from a closed, finite group. The n−1 denominator corrects for bias in estimating the true population variance.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">CV</div>
+        <h4>Coefficient of variation</h4>
+        <p>The coefficient of variation (CV = σ/μ × 100%) expresses standard deviation as a percentage of the mean. This lets you compare variability across processes with different scales. A CV below 10% is generally low variation; above 30% signals high relative variability.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">68-95</div>
+        <h4>The empirical rule</h4>
+        <p>For data that is approximately normally distributed: 68% of values fall within ±1σ of the mean, 95% within ±2σ, and 99.7% within ±3σ. If your data deviates significantly from these expectations, it may be non-normal — consider a Box Plot or normality test before applying Cp/Cpk analysis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this standard deviation calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Standard deviation is the most-used measure of spread in statistics. It expresses the typical distance between a data point and the mean in the same units as the original data. Larger SD = more variability = wider distribution. This calculator takes a paste-in list of numbers and returns the count, mean, range, variance, sample standard deviation (dividing by n-1), population standard deviation (dividing by n), and the coefficient of variation (SD ÷ mean × 100%) — a unit-free measure useful for comparing variability across processes that operate at different scales.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator any time you have raw measurements and need a single number for spread: capability studies, control limit calculations, sample-size planning, hypothesis testing, A/B comparisons or supplier benchmarking. It is also the right tool when somebody quotes a mean without an SD — variability is usually the more important half of the story.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A sample of 15 weights gives a mean of 250 g with sample SD = 12 g and range = 48 g. The coefficient of variation is 12 ÷ 250 × 100 = 4.8% — a tight process. By comparison, a competing process with the same mean but SD = 30 g has CV = 12% — three times more variable, even though both produce the same average weight. Cpk for the same spec window will be roughly three times higher on the first process; the customer will see far fewer out-of-spec parts.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the difference between sample and population SD?</summary><p>Sample SD divides by n-1 (Bessel correction) and is the right choice whenever your data is a sample drawn from a larger population — which is almost every real-world dataset. Population SD divides by n and is only used when you have measured every member of the population.</p></details>
+      <details class="seo-faq-item"><summary>How does standard deviation differ from variance?</summary><p>Variance is the average squared deviation from the mean; standard deviation is its square root. SD is in the same units as the original data (grams, seconds, pounds), which makes it easier to interpret. Variance is more useful in formulae because variances of independent variables add.</p></details>
+      <details class="seo-faq-item"><summary>What is the coefficient of variation used for?</summary><p>CV (SD ÷ mean × 100%) is a unit-free measure of relative variability, useful for comparing the spread of two processes that operate at different scales. CV < 10% is tight; 10-30% is moderate; > 30% indicates a process where variability dominates the mean.</p></details>
+      <details class="seo-faq-item"><summary>Is SD affected by outliers?</summary><p>Yes — strongly. A single extreme value can inflate the SD by 50% or more on a small sample, because deviations are squared before averaging. For data with known outliers, use the median absolute deviation (MAD) or the IQR as a robust alternative measure of spread.</p></details>
+      <details class="seo-faq-item"><summary>How do I interpret SD on a normal distribution?</summary><p>For normal data, about 68% of values fall within ±1 SD of the mean, 95% within ±2 SD and 99.7% within ±3 SD. This empirical rule is the basis of control limits, capability indices and Six Sigma defect-rate calculations — and only holds when the data is approximately normal.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+/* ── State ── */
+var sdType = 'sample';
+function setType(t) {
+  sdType = t;
+  document.getElementById('btn-sample').className = 'toggle-btn' + (t==='sample'?' active':'');
+  document.getElementById('btn-pop').className    = 'toggle-btn' + (t==='population'?' active':'');
+  document.getElementById('type-hint').innerHTML  = t === 'sample'
+    ? 'Use <strong style="color:var(--text)">sample</strong> when your data is a subset of a larger process (most common in quality work).'
+    : 'Use <strong style="color:var(--text)">population</strong> when your data includes every item in the group — e.g. all units produced in a single batch.';
+}
+
+/* ── Utilities ── */
+function parseData(raw) {
+  return raw.split(/[\s,;\t\n]+/)
+    .map(function(s){ return s.trim(); }).filter(Boolean)
+    .map(parseFloat).filter(function(v){ return !isNaN(v); });
+}
+function mean(a){ return a.reduce(function(s,v){ return s+v; },0)/a.length; }
+function quantile(s,p){
+  var i=p*(s.length-1),lo=Math.floor(i),hi=Math.ceil(i);
+  return lo===hi?s[lo]:s[lo]*(1-(i-lo))+s[hi]*(i-lo);
+}
+function fmt(v,dp){ return v===null||isNaN(v)?'N/A':parseFloat(v.toFixed(dp!==undefined?dp:4)).toString(); }
+
+/* ── CV rating ── */
+function cvInfo(cv){
+  var abs=Math.abs(cv);
+  if(abs<10)  return { text:'Very low variation',  color:'#3affb4', bg:'rgba(58,255,180,.10)' };
+  if(abs<20)  return { text:'Low variation',        color:'#d8ff3a', bg:'rgba(216,255,58,.10)' };
+  if(abs<30)  return { text:'Moderate variation',   color:'#f5c518', bg:'rgba(245,197,24,.10)' };
+  if(abs<50)  return { text:'High variation',       color:'#ff8c42', bg:'rgba(255,140,66,.10)' };
+  return              { text:'Very high variation', color:'#ff5c5c', bg:'rgba(255,92,92,.10)' };
+}
+
+/* ── Histogram with normal curve plugin ── */
+var histChart = null;
+var overlayPlugin = {
+  id:'overlayLines',
+  afterDraw:function(chart){
+    if(!chart.config.options.overlayLines) return;
+    var lines=chart.config.options.overlayLines;
+    var ctx=chart.ctx,xA=chart.scales.x,yA=chart.scales.y;
+    lines.forEach(function(line){
+      var xPx=xA.getPixelForValue(line.value);
+      if(xPx<xA.left||xPx>xA.right) return;
+      ctx.save();ctx.setLineDash(line.dash||[5,4]);
+      ctx.strokeStyle=line.color;ctx.lineWidth=2;ctx.globalAlpha=.85;
+      ctx.beginPath();ctx.moveTo(xPx,yA.top);ctx.lineTo(xPx,yA.bottom);ctx.stroke();
+      ctx.setLineDash([]);ctx.globalAlpha=1;
+      ctx.fillStyle=line.color;ctx.font='bold 11px Inter,sans-serif';
+      ctx.textAlign=line.align||'center';
+      ctx.fillText(line.label,xPx+(line.offsetX||0),yA.top+13);
+      ctx.restore();
+    });
+  }
+};
+Chart.register(overlayPlugin);
+
+function normalPDF(x,mu,sd){
+  var z=(x-mu)/sd;
+  return (1/(sd*Math.sqrt(2*Math.PI)))*Math.exp(-.5*z*z);
+}
+
+function buildHistogram(sorted,mu,sd){
+  var n=sorted.length;
+  var bins=Math.max(5,Math.min(20,Math.round(1+3.322*Math.log10(n))));
+  var min=sorted[0],max=sorted[n-1],range=max-min||1;
+  var binW=range/bins;
+  var edges=[];
+  for(var i=0;i<=bins;i++) edges.push(min+i*binW);
+  var counts=new Array(bins).fill(0);
+  sorted.forEach(function(v){
+    var idx=Math.min(Math.floor((v-min)/binW),bins-1);
+    counts[idx]++;
+  });
+  var midpoints=edges.slice(0,-1).map(function(e,i){ return (e+edges[i+1])/2; });
+  var labels=midpoints.map(function(m){ return parseFloat(m.toFixed(4)).toString(); });
+
+  /* Normal curve — scale to match histogram height */
+  var maxCount=Math.max.apply(null,counts);
+  var curveXs=[];
+  var curvePts=300;
+  for(var i=0;i<=curvePts;i++) curveXs.push(min-range*.1+(range*1.2)*i/curvePts);
+  var maxPDF=normalPDF(mu,mu,sd);
+  var scaleFactor=maxCount/maxPDF;
+  var curveData=curveXs.map(function(x){ return normalPDF(x,mu,sd)*scaleFactor; });
+
+  /* Overlay lines */
+  var lines=[
+    {value:mu,   color:'#d8ff3a', label:'μ',   align:'center', offsetX:0 },
+    {value:mu-sd,color:'#ff5c5c', label:'-1σ', align:'right',  offsetX:-3},
+    {value:mu+sd,color:'#ff5c5c', label:'+1σ', align:'left',   offsetX:3 },
+    {value:mu-2*sd,color:'rgba(255,92,92,.5)', label:'-2σ', align:'right',  offsetX:-3},
+    {value:mu+2*sd,color:'rgba(255,92,92,.5)', label:'+2σ', align:'left',   offsetX:3 }
+  ];
+
+  var cfg={
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[
+        {label:'Frequency',data:counts,backgroundColor:'rgba(216,255,58,.22)',borderColor:'rgba(216,255,58,.55)',borderWidth:1,borderRadius:3,order:2},
+        {label:'Normal curve',data:curveData,type:'line',borderColor:'rgba(255,255,255,.55)',backgroundColor:'transparent',pointRadius:0,borderWidth:2,tension:0.4,xAxisID:'x2',order:1}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:400},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){ return ctx.dataset.label+': '+(ctx.dataset.type==='line'?ctx.parsed.y.toFixed(2):ctx.parsed.y); }}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},border:{color:'rgba(255,255,255,.10)'},ticks:{color:'#b8c0cc',font:{size:11},maxTicksLimit:12}},
+        x2:{type:'linear',display:false,min:min-range*.1,max:min-range*.1+range*1.2},
+        y:{grid:{color:'rgba(255,255,255,.05)'},border:{color:'rgba(255,255,255,.10)'},ticks:{color:'#b8c0cc',font:{size:11}},beginAtZero:true,title:{display:true,text:'Frequency',color:'#b8c0cc',font:{size:12,weight:'600'}}}
+      },
+      overlayLines:lines
+    }
+  };
+  if(histChart) histChart.destroy();
+  histChart=new Chart(document.getElementById('hist-chart').getContext('2d'),cfg);
+}
+
+/* ── Z-score table ── */
+var TABLE_LIMIT=100;
+function buildZTable(data,mu,sd){
+  var tbody=document.getElementById('zscore-tbody');
+  var noteEl=document.getElementById('table-note');
+  tbody.innerHTML='';
+  var maxZ=Math.max.apply(null,data.map(function(v){ return Math.abs((v-mu)/sd); }));
+
+  var show=data.length>TABLE_LIMIT?data.slice(0,TABLE_LIMIT):data;
+  show.forEach(function(v,i){
+    var dev=v-mu;
+    var z=sd>0?dev/sd:0;
+    var abs=Math.abs(z);
+    var isOut=abs>2;
+    var zColor=abs<1?'#3affb4':abs<2?'#d8ff3a':abs<3?'#f5c518':'#ff5c5c';
+    /* bar */
+    var barPct=Math.min(abs/Math.max(maxZ,1)*100,100);
+    var barDir=z>=0?'rgba(216,255,58,.5)':'rgba(58,159,255,.5)';
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="color:var(--muted)">'+(i+1)+'</td>'+
+      '<td style="font-weight:800">'+fmt(v)+'</td>'+
+      '<td style="color:'+(dev>=0?'#d8ff3a':'#3a9fff')+'">'+
+        (dev>=0?'+':'')+fmt(dev,4)+'</td>'+
+      '<td style="font-weight:900;color:'+zColor+'">'+
+        (z>=0?'+':'')+z.toFixed(3)+'</td>'+
+      '<td class="z-bar-cell"><div class="z-bar-inner" style="background:'+barDir+';width:'+barPct.toFixed(0)+'%"></div></td>'+
+      '<td>'+(isOut?'<span class="outlier-tag">'+abs.toFixed(1)+'σ</span>':'')+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  if(data.length>TABLE_LIMIT){
+    noteEl.style.display='';
+    noteEl.textContent='Showing first '+TABLE_LIMIT+' of '+data.length+' values.';
+  } else {
+    noteEl.style.display='none';
+  }
+  document.getElementById('zscore-count').textContent=data.length+' value'+(data.length!==1?'s':'');
+}
+
+/* ── Explanation ── */
+function getExplanation(n,mu,sd,cv,type){
+  var typeLabel=type==='sample'?'sample':'population';
+  var cvI=cvInfo(cv);
+  return 'The '+typeLabel+' standard deviation is '+fmt(sd,4)+', meaning the average distance of each measurement from the mean ('+fmt(mu,4)+') is '+fmt(sd,4)+' units. The coefficient of variation is '+cv.toFixed(1)+'% — '+cvI.text.toLowerCase()+'. '+
+    (Math.abs(mu)>0?'':'Because the mean is near zero, interpret the CV with caution. ')+
+    'With '+n+' values, the standard error of the mean is '+fmt(sd/Math.sqrt(n),4)+', which estimates how precisely the mean of your sample estimates the true process mean.';
+}
+
+/* ── Recommendations ── */
+function getRecommendations(n,mu,sd,cv,zones,type){
+  var recs=[];
+  var cvI=cvInfo(cv);
+  var z1=zones[0],z2=zones[1],z3=zones[2];
+
+  if(cv>30){
+    recs.push({icon:'&#x2195;',iconBg:'rgba(255,92,92,.12)',iconColor:'#ff5c5c',head:'High relative variation detected',text:'A CV of '+cv.toFixed(1)+'% indicates that spread is large relative to the mean. This typically points to multiple different sources mixing — different machines, operators, batches, or time periods. Stratify the data and analyse each subgroup separately to find where variation originates.'});
+  }
+  if(Math.abs(z1-68)>10){
+    recs.push({icon:'&#x1F4CA;',iconBg:'rgba(245,197,24,.12)',iconColor:'#f5c518',head:'Data may not be normally distributed',text:'In a normal distribution, approximately 68% of values fall within ±1σ. Your data shows '+z1.toFixed(0)+'%. Before using Cp/Cpk or running t-tests (which assume normality), verify the distribution shape with a Box Plot or normality test.'});
+  }
+  if(n<15){
+    recs.push({icon:'&#x1F4DD;',iconBg:'rgba(255,255,255,.05)',iconColor:'#b8c0cc',head:'Small sample — interpret with caution',text:'With only '+n+' values, the standard deviation estimate is imprecise. The true standard deviation could be substantially higher or lower. Collect at least 20–30 data points before making process decisions based on this value.'});
+  }
+  if(cv<=20 && z1>=60 && z1<=75 && n>=15){
+    recs.push({icon:'&#x2713;',iconBg:'rgba(58,255,180,.12)',iconColor:'#3affb4',head:'Good basis for capability analysis',text:'Low CV and approximately normal distribution suggest the data is suitable for Cp/Cpk or Pp/Ppk analysis. Use this standard deviation as your σ input to the Cp/Cpk calculator to assess whether the process meets specification limits.'});
+  }
+  if(type==='population'){
+    recs.push({icon:'&#x2139;',iconBg:'rgba(216,255,58,.08)',iconColor:'#d8ff3a',head:'Consider using sample standard deviation',text:'Population standard deviation (σ) is only correct when you have data for every single item in a closed group. For ongoing processes, future sampling, or subsets of production, use sample standard deviation (s) to get an unbiased estimate of true process variation.'});
+  }
+  recs.push({icon:'&#x1F4C8;',iconBg:'rgba(216,255,58,.12)',iconColor:'#d8ff3a',head:'Use std dev as an input to other tools',text:'Standard deviation is the foundation of Cp/Cpk, Pp/Ppk, control limits, z-scores, and sample size calculations. The value you have calculated here can be entered directly into the Cp/Cpk or Control Limits calculators for a complete process analysis.'});
+  return recs;
+}
+
+function renderRecs(recs){
+  var grid=document.getElementById('rec-grid');
+  grid.innerHTML='';
+  recs.forEach(function(r){
+    var d=document.createElement('div');d.className='rec-item';
+    d.innerHTML='<div class="rec-icon" style="background:'+r.iconBg+';color:'+r.iconColor+'">'+r.icon+'</div>'+
+      '<div><div class="rec-head">'+r.head+'</div><p class="rec-text">'+r.text+'</p></div>';
+    grid.appendChild(d);
+  });
+}
+
+/* ── Main ── */
+function calculate(){
+  var raw=document.getElementById('data-input').value;
+  var data=parseData(raw);
+  var dataEl=document.getElementById('data-input');
+  var dataErr=document.getElementById('data-err');
+
+  var minPts=sdType==='sample'?2:1;
+  if(data.length<minPts){
+    dataEl.classList.add('error');
+    dataErr.textContent='Enter at least '+minPts+' valid numeric value'+(minPts>1?'s':'')+ '.';
+    dataErr.classList.add('visible');
+    return;
+  }
+  dataEl.classList.remove('error');dataErr.classList.remove('visible');
+
+  var n=data.length;
+  var sorted=data.slice().sort(function(a,b){ return a-b; });
+  var mu=mean(data);
+  var med=quantile(sorted,0.5);
+  var denom=sdType==='sample'?n-1:n;
+  var variance=data.reduce(function(s,v){ return s+(v-mu)*(v-mu); },0)/denom;
+  var sd=Math.sqrt(variance);
+  var cv=mu!==0?Math.abs(sd/mu)*100:null;
+  var se=sd/Math.sqrt(n);
+
+  /* σ zones */
+  function pctWithin(k){
+    return data.filter(function(v){ return Math.abs(v-mu)<=k*sd; }).length/n*100;
+  }
+  var z1=pctWithin(1),z2=pctWithin(2),z3=pctWithin(3);
+
+  /* ── Primary result ── */
+  var typeLabel=sdType==='sample'?'Sample standard deviation (s)':'Population standard deviation (σ)';
+  document.getElementById('sd-label').textContent=typeLabel;
+  document.getElementById('sd-value').textContent=fmt(sd);
+  document.getElementById('sd-sub').textContent='Variance '+(sdType==='sample'?'s²':'σ²')+' = '+fmt(variance);
+  document.getElementById('var-sub').textContent=sdType==='sample'?'s²':'σ²';
+
+  var cvBadge=document.getElementById('cv-badge');
+  if(cv!==null){
+    var cvI=cvInfo(cv);
+    cvBadge.textContent='CV '+cv.toFixed(1)+'%';
+    cvBadge.style.color=cvI.color;
+    cvBadge.style.background=cvI.bg;
+    cvBadge.style.border='1px solid '+cvI.color;
+  } else {
+    cvBadge.textContent='CV: N/A (mean=0)';
+    cvBadge.style.color='var(--muted)';
+    cvBadge.style.background='rgba(255,255,255,.04)';
+    cvBadge.style.border='1px solid var(--line)';
+  }
+
+  /* Stats */
+  document.getElementById('stat-mean').textContent=fmt(mu,4);
+  document.getElementById('stat-median').textContent=fmt(med,4);
+  document.getElementById('stat-var').textContent=fmt(variance,4);
+  document.getElementById('stat-cv').textContent=cv!==null?cv.toFixed(1)+'%':'N/A';
+  document.getElementById('stat-se').textContent=fmt(se,4);
+  document.getElementById('stat-n').textContent=n;
+  document.getElementById('stat-min').textContent=fmt(sorted[0]);
+  document.getElementById('stat-max').textContent=fmt(sorted[n-1]);
+  document.getElementById('stat-range').textContent=fmt(sorted[n-1]-sorted[0]);
+
+  /* σ zone bars */
+  ['z1','z2','z3'].forEach(function(id,i){
+    var pct=[z1,z2,z3][i];
+    var exp=[68,95,99.7][i];
+    document.getElementById(id+'-fill').style.width=pct.toFixed(0)+'%';
+    document.getElementById(id+'-pct').textContent=pct.toFixed(0)+'%';
+    var diff=Math.abs(pct-exp);
+    document.getElementById(id+'-pct').style.color=diff<5?'#3affb4':diff<10?'#d8ff3a':'#ff5c5c';
+  });
+
+  /* Explanation */
+  document.getElementById('explanation-text').textContent=
+    getExplanation(n,mu,sd,cv!==null?cv:0,sdType);
+
+  /* Show results */
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-panel').classList.add('visible');
+
+  /* Histogram */
+  document.getElementById('charts-section').classList.add('visible');
+  buildHistogram(sorted,mu,sd);
+
+  /* Z-score table */
+  document.getElementById('zscore-section').classList.add('visible');
+  buildZTable(data,mu,sd);
+
+  /* Recommendations */
+  renderRecs(getRecommendations(n,mu,sd,cv!==null?cv:0,[z1,z2,z3],sdType));
+  document.getElementById('improve-section').classList.add('visible');
+}
+
+function resetCalc(){
+  document.getElementById('data-input').value='';
+  document.getElementById('data-input').classList.remove('error');
+  document.getElementById('data-err').classList.remove('visible');
+  document.getElementById('result-panel').classList.remove('visible');
+  document.getElementById('empty-state').style.display='';
+  document.getElementById('charts-section').classList.remove('visible');
+  document.getElementById('zscore-section').classList.remove('visible');
+  document.getElementById('improve-section').classList.remove('visible');
+  if(histChart){histChart.destroy();histChart=null;}
+}
+
+document.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.ctrlKey) calculate(); });
+</script>
+</body>
+</html>

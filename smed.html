@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>SMED Changeover ROI Calculator | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);line-height:1.45;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+  header{border-bottom:1px solid var(--line);background:rgba(4,7,11,.78);backdrop-filter:blur(10px);position:sticky;top:0;z-index:20}
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:42px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{content:"";position:absolute;left:0;bottom:-10px;width:0;height:3px;background:var(--accent);border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);transition:width .25s ease}
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:16px;margin-bottom:18px}
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{background:rgba(216,255,58,.08);border:1px solid rgba(216,255,58,.22);border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap}
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px}
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{flex:1;background:transparent;border:none;color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;-moz-appearance:textfield;min-width:0}
+  .input-with-unit input::-webkit-outer-spin-button,.input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{background:rgba(255,255,255,.06);border:none;border-left:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:14px;font-weight:700;padding:0 16px;cursor:pointer;font-family:inherit;outline:none;min-width:130px}
+  .unit-select option{background:#0d1524;color:var(--text)}
+  .field input.plain,.field select.plain,.field textarea.plain{width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--text);padding:16px 18px;font-size:18px;font-family:inherit;outline:none;transition:border-color .2s ease, background .2s ease;-moz-appearance:textfield}
+  .field textarea.plain{resize:vertical;min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+  .field input.plain::-webkit-outer-spin-button,.field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder,.field textarea.plain::placeholder{color:#4d5766}
+  .field input.plain:focus,.field select.plain:focus,.field textarea.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error,.field textarea.plain.error,.field select.plain.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+  .btn-row{display:flex;gap:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:18px 28px;border-radius:22px;font-weight:800;font-size:18px;border:1px solid var(--line);transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px 36px 0 0;box-shadow:var(--shadow);padding:36px;border-bottom:none}
+  .result-label{font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .result-value{font-size:clamp(52px,8vw,84px);font-weight:900;letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px}
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .pace-row{margin-top:18px;padding:16px 20px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+  .chart-box{margin-top:18px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px}
+  .chart-box svg{width:100%;height:auto;display:block}
+  .result-explanation{background:rgba(6,10,17,.98);border:1px solid var(--line);border-radius:0 0 36px 36px;padding:28px 36px 36px}
+  .explanation-title{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+  .empty-state{background:linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:52px 36px;text-align:center}
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{width:36px;height:36px;border-radius:10px;background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;margin-bottom:14px}
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;background:linear-gradient(180deg, #05070b 0%, #07101d 100%);color:#b8c0cc;font-size:17px;font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif}
+  .breakdown-list{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .breakdown-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}
+  .breakdown-row .bk-label{flex:1;font-size:15px;font-weight:700;color:#dfe4eb}
+  .breakdown-row .bk-value{font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .breakdown-row .bk-bar{flex:2;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .breakdown-row .bk-bar-fill{height:100%;border-radius:999px;background:var(--accent)}
+  @media(max-width:900px){.calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}.hero-inner{grid-template-columns:1fr}.formula-badge{display:none}}
+  @media(max-width:980px){.nav{justify-content:center}nav{justify-content:center;gap:24px;font-size:18px}.wrap{width:min(var(--max), calc(100% - 28px))}.btn{min-width:unset}}
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/smed.html">
+  <meta name="description" content="Free SMED ROI calculator. Quantify the time recovered, extra units produced and annual revenue gained from reducing changeover time on any production process.">
+  <meta name="keywords" content="SMED calculator, single minute exchange of die, changeover reduction, SMED ROI, changeover time calculator, lean changeover, quick changeover">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/smed.html">
+  <meta property="og:title" content="SMED Changeover ROI Calculator | SimplicityHub">
+  <meta property="og:description" content="Free SMED ROI calculator. Quantify the time recovered, extra units produced and annual revenue gained from reducing changeover time on any production process.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SMED Changeover ROI Calculator | SimplicityHub">
+  <meta name="twitter:description" content="Free SMED ROI calculator. Quantify the time recovered, extra units produced and annual revenue gained from reducing changeover time on any production process.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"SMED ROI Calculator","item":"https://www.simplicityhub.co.uk/pages/smed.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"SMED ROI Calculator","url":"https://www.simplicityhub.co.uk/pages/smed.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free SMED ROI calculator. Quantify the time recovered, extra units produced and annual revenue gained from reducing changeover time on any production process.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does SMED stand for?","acceptedAnswer":{"@type":"Answer","text":"SMED stands for Single-Minute Exchange of Die. The \"single minute\" refers to the single-digit target — under ten minutes — for any changeover, regardless of how complex it appears today."}},{"@type":"Question","name":"How long does a SMED workshop take?","acceptedAnswer":{"@type":"Answer","text":"A typical SMED kaizen event runs for three to five days: one day to film and analyse the current changeover, two days to redesign and trial the improved method, and one to two days to standardise, train and document the new procedure."}},{"@type":"Question","name":"What is the difference between internal and external setup?","acceptedAnswer":{"@type":"Answer","text":"Internal setup steps can only be done while the machine is stopped (e.g. removing a tool). External steps can be done while the machine is still running the previous job (e.g. fetching the next tool, pre-heating, pre-staging materials). Converting internal to external is the heart of SMED."}},{"@type":"Question","name":"What is a realistic SMED reduction?","acceptedAnswer":{"@type":"Answer","text":"Most first-pass SMED workshops achieve a 50-75% reduction in changeover time. World-class operations sustain reductions of 90%+ over multiple iterations, often hitting single-minute changeover on processes that originally took hours."}},{"@type":"Question","name":"What is the hidden benefit of SMED beyond time?","acceptedAnswer":{"@type":"Answer","text":"The bigger prize is flexibility. Faster changeovers shrink economic batch size, which collapses lead times, reduces forecast error, frees up cash tied in finished-goods inventory, and lets you run smaller, more frequent batches in response to real demand."}}]}</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="tools.html">Calculators</a><span class="breadcrumb-sep">/</span><span>SMED Changeover ROI Calculator</span></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Lean &amp; Planning</div>
+        <h1>SMED Changeover ROI Calculator</h1>
+        <p class="lead">Quantify the financial and capacity gains from reducing changeover time — compare current vs target setup, see the recovered production minutes per day, extra units, and annual revenue impact.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">Time Saved = (Current − Target) × Changeovers/day</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="cur">Current changeover time (minutes)</label>
+            <span class="field-hint">Average time the process is down for one changeover today</span>
+            <input type="number" id="cur" class="plain" placeholder="e.g. 60" min="0" step="any">
+            <span class="field-error" id="cur-err">Enter a valid current time (greater than 0).</span>
+          </div>
+          <div class="field">
+            <label for="tgt">Target changeover time (minutes)</label>
+            <span class="field-hint">Achievable changeover time after SMED improvement</span>
+            <input type="number" id="tgt" class="plain" placeholder="e.g. 15" min="0" step="any">
+            <span class="field-error" id="tgt-err">Target must be less than current time.</span>
+          </div>
+          <div class="field">
+            <label for="freq">Changeovers per day</label>
+            <span class="field-hint">How many times the process changes over each working day</span>
+            <input type="number" id="freq" class="plain" placeholder="e.g. 4" min="0" step="any">
+            <span class="field-error" id="freq-err">Enter a valid frequency (greater than 0).</span>
+          </div>
+          <div class="field">
+            <label for="rate">Production rate (units / minute)</label>
+            <span class="field-hint">How many units the process produces per minute when running</span>
+            <input type="number" id="rate" class="plain" placeholder="e.g. 2" min="0" step="any">
+            <span class="field-error" id="rate-err">Enter a valid production rate (greater than 0).</span>
+          </div>
+          <div class="field">
+            <label for="margin">Contribution per unit (£)</label>
+            <span class="field-hint">Selling price minus variable cost per unit — used to estimate annual revenue gain</span>
+            <input type="number" id="margin" class="plain" placeholder="e.g. 5" min="0" step="any">
+            <span class="field-error" id="margin-err">Enter a valid margin per unit.</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F527;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left, then press Calculate.</p>
+        </div>
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Time recovered</div>
+            <div class="result-value" id="main-value">—</div>
+            <div class="result-unit" id="main-unit">minutes per day</div>
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Extra units per day</div>
+                <div class="metric-box-value" id="metric-a" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Annual revenue gain (£)</div>
+                <div class="metric-box-value" id="metric-b" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-label">Changeover reduction</span>
+              <div class="pace-bar-wrap"><div class="pace-track"><div class="pace-fill" id="pace-fill"></div></div></div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+            <div id="extra-area"></div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding SMED Changeover ROI</h2>
+    <div class="how-grid">
+
+      <div class="how-card"><div class="how-num">1</div><h4>SMED in one line</h4><p>Single-Minute Exchange of Die (SMED) is a structured method to cut changeover time, ideally below 10 minutes. The technique separates internal steps (machine stopped) from external steps (machine running), then converts as many internal steps as possible to external.</p></div>
+      <div class="how-card"><div class="how-num">2</div><h4>Why changeovers matter</h4><p>Long changeovers force big batches, which mean more inventory, longer lead times, and slower customer response. Cutting changeovers shrinks economic batch size — letting you run smaller, faster batches with the same machine and people.</p></div>
+      <div class="how-card"><div class="how-num">3</div><h4>The hidden gain</h4><p>The headline gain is recovered minutes, but the bigger win is flexibility — being able to run any product on demand, with negligible setup cost. That collapses lead times, reduces forecast errors and frees up cash tied in finished-goods inventory.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this smed roi calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">SMED — Single-Minute Exchange of Die — is the structured Lean method for cutting changeover time, ideally to under ten minutes. Pioneered by Shigeo Shingo at Toyota, the technique separates internal setup steps (which can only happen with the machine stopped) from external setup steps (which can be done while the machine is still running), then converts as many internal steps as possible into external ones. This calculator turns a SMED proposal into pounds. Enter your current and target changeover times, how often you change over, your production rate and your contribution per unit, and the tool returns minutes recovered per day, extra units per day, and the annual revenue gain from running the same equipment with the same people.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator when building the business case for a SMED workshop, pitching a kaizen event to a finance director, sizing the prize before committing engineering time, or comparing two competing improvement projects. It is also the right tool when a board member asks "what would faster changeovers actually be worth?".</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A bottling line currently changes over in 60 minutes, four times per day. After SMED, target is 15 minutes. Time saved = (60-15) × 4 = 180 minutes per day. At 2 units per minute, that is 360 extra units per day or roughly 90,000 per year. At £5 contribution per unit, that is £450,000 in additional annual revenue from the same machine, same labour, and the same shift pattern — a 75% changeover reduction.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What does SMED stand for?</summary><p>SMED stands for Single-Minute Exchange of Die. The "single minute" refers to the single-digit target — under ten minutes — for any changeover, regardless of how complex it appears today.</p></details>
+      <details class="seo-faq-item"><summary>How long does a SMED workshop take?</summary><p>A typical SMED kaizen event runs for three to five days: one day to film and analyse the current changeover, two days to redesign and trial the improved method, and one to two days to standardise, train and document the new procedure.</p></details>
+      <details class="seo-faq-item"><summary>What is the difference between internal and external setup?</summary><p>Internal setup steps can only be done while the machine is stopped (e.g. removing a tool). External steps can be done while the machine is still running the previous job (e.g. fetching the next tool, pre-heating, pre-staging materials). Converting internal to external is the heart of SMED.</p></details>
+      <details class="seo-faq-item"><summary>What is a realistic SMED reduction?</summary><p>Most first-pass SMED workshops achieve a 50-75% reduction in changeover time. World-class operations sustain reductions of 90%+ over multiple iterations, often hitting single-minute changeover on processes that originally took hours.</p></details>
+      <details class="seo-faq-item"><summary>What is the hidden benefit of SMED beyond time?</summary><p>The bigger prize is flexibility. Faster changeovers shrink economic batch size, which collapses lead times, reduces forecast error, frees up cash tied in finished-goods inventory, and lets you run smaller, more frequent batches in response to real demand.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+<script>
+
+function calculate(){
+  var c=parseFloat(document.getElementById('cur').value),t=parseFloat(document.getElementById('tgt').value),f=parseFloat(document.getElementById('freq').value),r=parseFloat(document.getElementById('rate').value),m=parseFloat(document.getElementById('margin').value);
+  var ok=true;
+  function chk(id,errId,cond){var input=document.getElementById(id);input.classList.toggle('error',!cond);document.getElementById(errId).classList.toggle('visible',!cond);if(!cond)ok=false;}
+  chk('cur','cur-err',!isNaN(c)&&c>0);
+  chk('tgt','tgt-err',!isNaN(t)&&t>=0&&(isNaN(c)||t<c));
+  chk('freq','freq-err',!isNaN(f)&&f>0);
+  chk('rate','rate-err',!isNaN(r)&&r>0);
+  chk('margin','margin-err',!isNaN(m)&&m>=0);
+  if(!ok)return;
+  var minSaved=(c-t)*f, extraUnits=minSaved*r, extraDay=extraUnits, extraYear=extraDay*250, gain=extraYear*m, reductionPct=((c-t)/c)*100;
+  document.getElementById('main-value').textContent=minSaved.toFixed(0);
+  document.getElementById('metric-a').textContent=extraDay.toFixed(0)+' units';
+  document.getElementById('metric-b').textContent='£'+gain.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('pace-fill').style.width=Math.min(100,reductionPct).toFixed(1)+'%';
+  document.getElementById('pace-label-text').textContent=reductionPct.toFixed(0)+'% reduction';
+  var verdict=reductionPct>=80?'A SMED reduction of '+reductionPct.toFixed(0)+'% is excellent — this is the hallmark of true single-minute changeover. ':reductionPct>=50?'A SMED reduction of '+reductionPct.toFixed(0)+'% is solid progress — keep iterating to push toward sub-10-minute changeovers. ':'A SMED reduction of '+reductionPct.toFixed(0)+'% is a good start — there is more to gain by separating internal and external setup steps. ';
+  document.getElementById('explanation-text').textContent=verdict+'Recovering '+minSaved.toFixed(0)+' minutes per day adds '+extraDay.toFixed(0)+' units per day and approximately '+extraYear.toLocaleString(undefined,{maximumFractionDigits:0})+' units per year. At £'+m.toFixed(2)+' contribution per unit, that is £'+gain.toLocaleString(undefined,{maximumFractionDigits:0})+' of additional annual revenue from the same machine and same people.';
+  document.getElementById('empty-state').style.display='none';document.getElementById('result-panel').classList.add('visible');
+}
+function resetCalc(){['cur','tgt','freq','rate','margin'].forEach(function(id){var i=document.getElementById(id);i.value='';i.classList.remove('error')});['cur-err','tgt-err','freq-err','rate-err','margin-err'].forEach(function(id){document.getElementById(id).classList.remove('visible')});document.getElementById('result-panel').classList.remove('visible');document.getElementById('empty-state').style.display=''}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') calculate(); });
+</script>
+</body>
+</html>
