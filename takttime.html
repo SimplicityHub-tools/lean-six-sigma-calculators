@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18121363767"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18121363767');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>Takt Time Calculator | Lean Pace of Demand | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);
+    line-height:1.45;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+
+  /* ── Header ── */
+  header{
+    border-bottom:1px solid var(--line);
+    background:rgba(4,7,11,.78);
+    backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:20;
+  }
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{
+    content:"";position:absolute;left:0;bottom:-10px;
+    width:0;height:3px;background:var(--accent);
+    border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);
+    transition:width .25s ease;
+  }
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px;
+  }
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{
+    color:var(--accent);font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;font-size:16px;margin-bottom:18px;
+  }
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{
+    background:rgba(216,255,58,.08);
+    border:1px solid rgba(216,255,58,.22);
+    border-radius:20px;padding:24px 32px;text-align:center;white-space:nowrap;
+  }
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:17px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:1.9}
+
+  /* ── Layout ── */
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+
+  /* ── Form ── */
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:22px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+
+  /* Input with inline unit selector */
+  .input-with-unit{display:flex;gap:0;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:border-color .2s ease}
+  .input-with-unit:focus-within{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .input-with-unit.error{border-color:rgba(255,90,90,.5)}
+  .input-with-unit input{
+    flex:1;background:transparent;border:none;
+    color:var(--text);padding:16px 18px;font-size:18px;
+    font-family:inherit;outline:none;
+    -moz-appearance:textfield;min-width:0;
+  }
+  .input-with-unit input::-webkit-outer-spin-button,
+  .input-with-unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .input-with-unit input::placeholder{color:#4d5766}
+  .unit-select{
+    background:rgba(255,255,255,.06);
+    border:none;border-left:1px solid rgba(255,255,255,.10);
+    color:var(--muted);font-size:14px;font-weight:700;
+    padding:0 16px;cursor:pointer;font-family:inherit;outline:none;
+    min-width:90px;
+  }
+  .unit-select option{background:#0d1524;color:var(--text)}
+
+  /* Plain input (no unit selector) */
+  .field input.plain{
+    width:100%;border-radius:18px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);
+    color:var(--text);padding:16px 18px;font-size:18px;
+    font-family:inherit;outline:none;
+    transition:border-color .2s ease, background .2s ease;
+    -moz-appearance:textfield;
+  }
+  .field input.plain::-webkit-outer-spin-button,
+  .field input.plain::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input.plain::placeholder{color:#4d5766}
+  .field input.plain:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.plain.error{border-color:rgba(255,90,90,.5)}
+
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  /* ── Buttons ── */
+  .btn-row{display:flex;gap:14px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:18px 28px;border-radius:22px;
+    font-weight:800;font-size:18px;border:1px solid var(--line);
+    transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* ── Results ── */
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px 36px 0 0;
+    box-shadow:var(--shadow);padding:36px;border-bottom:none;
+  }
+  .result-label{
+    font-size:14px;font-weight:700;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+  }
+  .result-value{
+    font-size:clamp(52px,8vw,84px);font-weight:900;
+    letter-spacing:-.04em;color:var(--accent);line-height:1;margin-bottom:6px;
+  }
+  .result-unit{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:28px}
+
+  /* Secondary metrics */
+  .metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .metric-box{
+    background:rgba(255,255,255,.03);border:1px solid var(--line);
+    border-radius:14px;padding:18px 20px;
+  }
+  .metric-box-label{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .metric-box-value{font-size:22px;font-weight:900;letter-spacing:-.02em}
+
+  /* Pace indicator */
+  .pace-row{
+    margin-top:18px;padding:16px 20px;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);
+    border-radius:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .pace-label{font-size:15px;color:var(--muted);font-weight:600}
+  .pace-bar-wrap{flex:1;min-width:120px}
+  .pace-track{height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .pace-fill{height:100%;border-radius:999px;background:var(--accent);width:0%;transition:width .5s ease}
+
+  .result-explanation{
+    background:rgba(6,10,17,.98);
+    border:1px solid var(--line);border-radius:0 0 36px 36px;
+    padding:28px 36px 36px;
+  }
+  .explanation-title{
+    font-size:15px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+  }
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* ── Empty state ── */
+  .empty-state{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);
+    padding:52px 36px;text-align:center;
+  }
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* ── How it works ── */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{
+    width:36px;height:36px;border-radius:10px;
+    background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;margin-bottom:14px;
+  }
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* ── Footer ── */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{
+    border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;
+    background:linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:#b8c0cc;font-size:17px;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.metrics-row{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}
+    .formula-badge{display:none}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}
+    nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max), calc(100% - 28px))}
+    .btn{min-width:unset}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/takttime.html">
+  <meta name="description" content="Free takt time calculator. Convert net available production time and customer demand into the seconds-per-unit pace your line must hit to meet demand without overproducing.">
+  <meta name="keywords" content="takt time calculator, takt time formula, lean takt time, customer demand pace, takt vs cycle time, line balancing, takt time UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/takttime.html">
+  <meta property="og:title" content="Takt Time Calculator | Lean Pace of Demand | SimplicityHub">
+  <meta property="og:description" content="Free takt time calculator. Convert net available production time and customer demand into the seconds-per-unit pace your line must hit to meet demand without overproducing.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Takt Time Calculator | Lean Pace of Demand | SimplicityHub">
+  <meta name="twitter:description" content="Free takt time calculator. Convert net available production time and customer demand into the seconds-per-unit pace your line must hit to meet demand without overproducing.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"Takt Time Calculator","item":"https://www.simplicityhub.co.uk/pages/takttime.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Takt Time Calculator","url":"https://www.simplicityhub.co.uk/pages/takttime.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free takt time calculator. Convert net available production time and customer demand into the seconds-per-unit pace your line must hit to meet demand without overproducing.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is takt time in Lean?","acceptedAnswer":{"@type":"Answer","text":"Takt time is the rate at which units must be produced to exactly meet customer demand. It is calculated as net available production time divided by customer demand for the same period. It sets the pace the process should run at — no faster, no slower."}},{"@type":"Question","name":"How is takt time different from cycle time?","acceptedAnswer":{"@type":"Answer","text":"Takt time is set by the customer (the demand rate). Cycle time is set by the process (how fast it actually produces). Takt time tells you how fast you should be running; cycle time tells you how fast you are running. The gap between them is the improvement opportunity."}},{"@type":"Question","name":"What happens if cycle time exceeds takt time?","acceptedAnswer":{"@type":"Answer","text":"You cannot meet demand on a single shift. Options are line balancing, removing waste from the longest step (the bottleneck), running overtime, adding a shift, or reducing the customer commitment. Doing nothing leads to late deliveries, expedited freight and customer escalations."}},{"@type":"Question","name":"Should takt time include breaks and downtime?","acceptedAnswer":{"@type":"Answer","text":"Use net available time — gross shift time minus planned breaks, scheduled meetings and planned changeovers. Do not subtract unplanned downtime; that is an OEE issue, not a takt-time issue, and excluding it would hide the real performance gap."}},{"@type":"Question","name":"How often should takt time be recalculated?","acceptedAnswer":{"@type":"Answer","text":"Recalculate any time customer demand changes by more than ~10%, or when shift patterns change. Many high-mix operations update takt time monthly or even weekly. A stale takt time is the most common reason a once-balanced line drifts out of balance."}}]}</script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <a href="tools.html">Calculators</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Takt Time Calculator</span>
+    </div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Lean &amp; Planning</div>
+        <h1>Takt Time Calculator</h1>
+        <p class="lead">Find the pace at which your process must produce one unit to exactly match customer demand — the heartbeat of a balanced, waste-free production system.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">
+          Takt Time = Available Time &divide; Customer Demand
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Calculator ── -->
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="field">
+            <label for="avail-time">Available production time</label>
+            <span class="field-hint">Net time available after planned breaks, changeovers and maintenance — per shift, day or period</span>
+            <div class="input-with-unit" id="avail-wrap">
+              <input type="number" id="avail-time" placeholder="e.g. 480" min="0" step="any">
+              <select class="unit-select" id="avail-unit" onchange="updateResultUnit()">
+                <option value="seconds">seconds</option>
+                <option value="minutes" selected>minutes</option>
+                <option value="hours">hours</option>
+              </select>
+            </div>
+            <span class="field-error" id="avail-err">Enter a valid available time (greater than 0).</span>
+          </div>
+
+          <div class="field">
+            <label for="demand">Customer demand</label>
+            <span class="field-hint">Number of units required in the same period as your available time above</span>
+            <input type="number" id="demand" class="plain" placeholder="e.g. 240" min="0" step="any">
+            <span class="field-error" id="demand-err">Enter a valid demand value (greater than 0).</span>
+          </div>
+
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Result area -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x23F1;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your available production time and customer demand on the left, then press Calculate.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Takt Time</div>
+            <div class="result-value" id="takt-value">—</div>
+            <div class="result-unit" id="takt-unit">minutes per unit</div>
+
+            <div class="metrics-row">
+              <div class="metric-box">
+                <div class="metric-box-label">Rate per hour</div>
+                <div class="metric-box-value" id="rate-per-hour" style="color:var(--accent)">—</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Rate per shift (8 hr)</div>
+                <div class="metric-box-value" id="rate-per-shift" style="color:var(--accent)">—</div>
+              </div>
+            </div>
+
+            <div class="pace-row">
+              <span class="pace-label">Pace relative to 1 unit/min</span>
+              <div class="pace-bar-wrap">
+                <div class="pace-track">
+                  <div class="pace-fill" id="pace-fill"></div>
+                </div>
+              </div>
+              <span style="font-size:14px;font-weight:700;color:var(--muted)" id="pace-label-text"></span>
+            </div>
+          </div>
+
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding Takt Time</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">1</div>
+        <h4>The heartbeat of production</h4>
+        <p>Takt time sets the pace at which one unit must be completed to satisfy demand. If takt time is 2 minutes, the process must produce one unit every 2 minutes to avoid building a backlog.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">2</div>
+        <h4>Balancing to takt</h4>
+        <p>Cycle time should be at or just below takt time at each step. Steps running faster than takt create inventory. Steps running slower become bottlenecks and will fail to meet demand.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">3</div>
+        <h4>Takt time changes</h4>
+        <p>Takt time is not fixed — it shifts as demand changes or as available time changes due to overtime, extra shifts or reduced production days. Recalculate whenever either input changes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this takt time calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Takt time is the heartbeat of a Lean process — the rate at which one unit must be completed to keep up with customer demand, no faster and no slower. The word comes from the German "Takt", meaning beat or rhythm. The formula is simple: net available production time divided by customer demand in the same window. This calculator takes your shift length, planned breaks, planned downtime and the number of units the customer wants in that period, and returns takt time in seconds per unit, units per hour and units per shift. Compare it against your measured cycle time and you instantly know whether the process is balanced, behind demand, or quietly overproducing.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator at the start of any line-balancing exercise, value-stream map, capacity quote or new-product introduction. It is also the right tool when sales takes on a bigger contract and you need to decide whether the existing line can absorb the extra demand or whether a second shift, additional operator or kaizen event is required.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A line runs 8 hours per shift with 30 minutes of planned breaks and 15 minutes of planned changeover. Net available time = 480 - 30 - 15 = 435 minutes = 26,100 seconds. Customer demand = 290 units per shift. Takt time = 26,100 ÷ 290 = 90 seconds per unit. If your measured cycle time is 110 seconds, the line is 22% behind demand and you have a balancing problem. If cycle time is 70 seconds, you are overproducing by 22% and risk building inventory.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is takt time in Lean?</summary><p>Takt time is the rate at which units must be produced to exactly meet customer demand. It is calculated as net available production time divided by customer demand for the same period. It sets the pace the process should run at — no faster, no slower.</p></details>
+      <details class="seo-faq-item"><summary>How is takt time different from cycle time?</summary><p>Takt time is set by the customer (the demand rate). Cycle time is set by the process (how fast it actually produces). Takt time tells you how fast you should be running; cycle time tells you how fast you are running. The gap between them is the improvement opportunity.</p></details>
+      <details class="seo-faq-item"><summary>What happens if cycle time exceeds takt time?</summary><p>You cannot meet demand on a single shift. Options are line balancing, removing waste from the longest step (the bottleneck), running overtime, adding a shift, or reducing the customer commitment. Doing nothing leads to late deliveries, expedited freight and customer escalations.</p></details>
+      <details class="seo-faq-item"><summary>Should takt time include breaks and downtime?</summary><p>Use net available time — gross shift time minus planned breaks, scheduled meetings and planned changeovers. Do not subtract unplanned downtime; that is an OEE issue, not a takt-time issue, and excluding it would hide the real performance gap.</p></details>
+      <details class="seo-faq-item"><summary>How often should takt time be recalculated?</summary><p>Recalculate any time customer demand changes by more than ~10%, or when shift patterns change. Many high-mix operations update takt time monthly or even weekly. A stale takt time is the most common reason a once-balanced line drifts out of balance.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  /* ── Seconds-per-unit to display string ── */
+  function formatTakt(seconds, unit) {
+    if (unit === 'seconds') return { value: seconds.toFixed(1), label: 'seconds per unit' };
+    if (unit === 'hours')   return { value: (seconds / 3600).toFixed(4), label: 'hours per unit' };
+    return                         { value: (seconds / 60).toFixed(2),   label: 'minutes per unit' };
+  }
+
+  function updateResultUnit() {
+    /* only re-renders if a result is already visible */
+    if (document.getElementById('result-panel').classList.contains('visible')) calculate();
+  }
+
+  /* ── Plain-English explanation ── */
+  function getExplanation(taktSeconds, demand, availSeconds) {
+    var taktMin  = (taktSeconds / 60).toFixed(2);
+    var taktSec  = taktSeconds.toFixed(1);
+    var perHour  = (3600 / taktSeconds).toFixed(1);
+    var demandFmt = Math.round(demand).toLocaleString();
+
+    var pace;
+    if (taktSeconds < 10)       pace = 'This is a high-speed process — a unit must be completed every ' + taktSec + ' seconds. Cycle time at each step must be tightly controlled and variation minimised.';
+    else if (taktSeconds < 60)  pace = 'A unit must be completed every ' + taktSec + ' seconds (' + taktMin + ' minutes). This is a reasonably fast pace — any step running slower will quickly create a backlog.';
+    else if (taktSeconds < 600) pace = 'A unit must be completed every ' + taktMin + ' minutes to meet demand of ' + demandFmt + ' units. At this pace there is more tolerance for variation between steps, but each step\'s cycle time should still sit at or just below takt.';
+    else                        pace = 'At ' + taktMin + ' minutes per unit, this is a relatively slow-paced process. Takt time this long often indicates low-volume, high-mix production where individual job complexity is high.';
+
+    return pace + ' The process needs to produce approximately ' + perHour + ' units per hour to stay on track. If any workstation has a cycle time above takt time, it is the bottleneck and will prevent demand from being met.';
+  }
+
+  /* ── Convert input to seconds ── */
+  function toSeconds(val, unit) {
+    if (unit === 'seconds') return val;
+    if (unit === 'hours')   return val * 3600;
+    return val * 60;
+  }
+
+  /* ── Calculate ── */
+  function calculate() {
+    var timeInput  = document.getElementById('avail-time');
+    var demandInput= document.getElementById('demand');
+    var timeErr    = document.getElementById('avail-err');
+    var demandErr  = document.getElementById('demand-err');
+    var timeWrap   = document.getElementById('avail-wrap');
+
+    var timeVal   = parseFloat(timeInput.value);
+    var demandVal = parseFloat(demandInput.value);
+    var unit      = document.getElementById('avail-unit').value;
+
+    var timeOk   = !isNaN(timeVal)   && timeVal   > 0;
+    var demandOk = !isNaN(demandVal) && demandVal > 0;
+
+    timeWrap.classList.toggle('error', !timeOk);
+    timeErr.classList.toggle('visible', !timeOk);
+    demandInput.classList.toggle('error', !demandOk);
+    demandErr.classList.toggle('visible', !demandOk);
+
+    if (!timeOk || !demandOk) return;
+
+    var availSeconds = toSeconds(timeVal, unit);
+    var taktSeconds  = availSeconds / demandVal;
+    var ratePerHour  = 3600 / taktSeconds;
+    var ratePerShift = 28800 / taktSeconds; /* 8-hour shift */
+
+    var fmt = formatTakt(taktSeconds, unit);
+
+    document.getElementById('takt-value').textContent = fmt.value;
+    document.getElementById('takt-unit').textContent  = fmt.label;
+
+    document.getElementById('rate-per-hour').textContent  = ratePerHour.toFixed(1) + ' units';
+    document.getElementById('rate-per-shift').textContent = ratePerShift.toFixed(0) + ' units';
+
+    /* Pace bar — show as proportion of "1 unit per minute" baseline */
+    var taktMinutes = taktSeconds / 60;
+    var pacePct;
+    if (taktMinutes <= 1) {
+      /* Faster than 1/min — bar shows how close to 1 min it is */
+      pacePct = Math.min(100, (taktMinutes / 1) * 100);
+    } else {
+      /* Slower than 1/min — shrink bar */
+      pacePct = Math.max(4, 100 / taktMinutes);
+    }
+    document.getElementById('pace-fill').style.width = pacePct.toFixed(1) + '%';
+    document.getElementById('pace-label-text').textContent =
+      taktMinutes < 1
+        ? (taktSeconds / 60 * 60).toFixed(0) + 's cycle'
+        : taktMinutes.toFixed(2) + ' min cycle';
+
+    document.getElementById('explanation-text').textContent =
+      getExplanation(taktSeconds, demandVal, availSeconds);
+
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('result-panel').classList.add('visible');
+  }
+
+  /* ── Reset ── */
+  function resetCalc() {
+    document.getElementById('avail-time').value  = '';
+    document.getElementById('demand').value      = '';
+    document.getElementById('avail-wrap').classList.remove('error');
+    document.getElementById('demand').classList.remove('error');
+    document.getElementById('avail-err').classList.remove('visible');
+    document.getElementById('demand-err').classList.remove('visible');
+    document.getElementById('result-panel').classList.remove('visible');
+    document.getElementById('empty-state').style.display = '';
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', function(e){ if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>

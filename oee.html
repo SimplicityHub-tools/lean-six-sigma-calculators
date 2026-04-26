@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18121363767"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18121363767');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>OEE Calculator | Overall Equipment Effectiveness | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);
+    line-height:1.45;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+
+  /* ── Header ── */
+  header{
+    border-bottom:1px solid var(--line);
+    background:rgba(4,7,11,.78);
+    backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:20;
+  }
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{
+    content:"";position:absolute;left:0;bottom:-10px;
+    width:0;height:3px;background:var(--accent);
+    border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);
+    transition:width .25s ease;
+  }
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:15px;color:var(--muted);font-weight:600;margin-bottom:22px;
+  }
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{
+    color:var(--accent);font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;font-size:16px;margin-bottom:18px;
+  }
+  h1{font-size:clamp(36px,5vw,60px);line-height:.95;margin:0 0 16px;letter-spacing:-.04em}
+  p.lead{font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px}
+  .formula-badge{
+    background:rgba(216,255,58,.08);
+    border:1px solid rgba(216,255,58,.22);
+    border-radius:20px;padding:20px 28px;text-align:center;white-space:nowrap;
+  }
+  .formula-label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .formula-text{font-size:14px;font-weight:700;color:var(--accent);font-family:monospace,monospace;letter-spacing:.02em;line-height:2}
+
+  /* ── Layout ── */
+  .section{padding:48px 0}
+  .calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:36px;
+  }
+
+  /* ── Form ── */
+  .panel-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 28px}
+  .field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:32px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em}
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input{
+    width:100%;border-radius:18px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);
+    color:var(--text);padding:16px 18px;font-size:18px;
+    font-family:inherit;outline:none;
+    transition:border-color .2s ease, background .2s ease;
+    -moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input::placeholder{color:#4d5766}
+  .field input:focus{border-color:rgba(216,255,58,.45);background:rgba(216,255,58,.03)}
+  .field input.error{border-color:rgba(255,90,90,.5)}
+  .field-error{font-size:13px;color:#ff7070;font-weight:600;display:none;margin-top:2px}
+  .field-error.visible{display:block}
+
+  /* ── Divider label ── */
+  .input-section-label{
+    font-size:12px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;
+    color:var(--muted);padding:0 0 12px;
+    border-bottom:1px solid var(--line);margin-bottom:4px;
+  }
+
+  /* ── Buttons ── */
+  .btn-row{display:flex;gap:14px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:18px 28px;border-radius:22px;
+    font-weight:800;font-size:18px;border:1px solid var(--line);
+    transition:transform .15s ease;cursor:pointer;font-family:inherit;flex:1;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* ── Results ── */
+  .result-panel{display:none;flex-direction:column;gap:0}
+  .result-panel.visible{display:flex}
+  .result-main{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px 36px 0 0;
+    box-shadow:var(--shadow);padding:36px;border-bottom:none;
+  }
+  .result-label{
+    font-size:14px;font-weight:700;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+  }
+
+  /* OEE big number */
+  .oee-hero{margin-bottom:28px}
+  .oee-value{
+    font-size:clamp(60px,9vw,96px);font-weight:900;
+    letter-spacing:-.04em;line-height:1;margin-bottom:6px;
+  }
+  .oee-sub{font-size:18px;color:var(--muted);font-weight:600;margin-bottom:8px}
+  .oee-badge{
+    display:inline-block;padding:6px 14px;border-radius:999px;
+    font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  }
+
+  /* OEE bar */
+  .oee-bar-track{
+    height:12px;border-radius:999px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--line);
+    overflow:hidden;margin:18px 0 6px;
+  }
+  .oee-bar-fill{
+    height:100%;border-radius:999px;
+    transition:width .6s cubic-bezier(.34,1,.64,1);
+    width:0%;
+  }
+  .oee-bar-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:700}
+
+  /* Three metric boxes */
+  .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+  .metric-box{
+    background:rgba(255,255,255,.03);border:1px solid var(--line);
+    border-radius:18px;padding:20px 18px;
+  }
+  .metric-box-label{
+    font-size:12px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+  }
+  .metric-box-value{
+    font-size:clamp(28px,3.5vw,38px);font-weight:900;
+    letter-spacing:-.02em;line-height:1;margin-bottom:4px;
+  }
+  .metric-box-sub{font-size:13px;color:var(--muted);font-weight:600}
+
+  .result-explanation{
+    background:rgba(6,10,17,.98);
+    border:1px solid var(--line);border-radius:0 0 36px 36px;
+    padding:28px 36px 36px;
+  }
+  .explanation-title{
+    font-size:15px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+  }
+  .explanation-text{font-size:19px;color:#d9dee5;line-height:1.6;margin:0}
+
+  /* ── Empty state ── */
+  .empty-state{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);border-radius:36px;box-shadow:var(--shadow);
+    padding:52px 36px;text-align:center;
+  }
+  .empty-icon{font-size:48px;margin-bottom:18px;opacity:.5}
+  .empty-state h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f3f5f7;margin:0 0 10px}
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* ── How it works ── */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:24px;padding:24px}
+  .how-num{
+    width:36px;height:36px;border-radius:10px;
+    background:rgba(216,255,58,.12);border:1px solid rgba(216,255,58,.24);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;margin-bottom:14px;
+  }
+  .how-card h4{font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* ── Footer ── */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{
+    border-top:1px solid rgba(255,255,255,.10);padding:28px 0 46px;margin-top:24px;
+    background:linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:#b8c0cc;font-size:17px;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .calc-layout,.how-grid,.metrics-grid,.field-row{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}
+    .formula-badge{display:none}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}
+    nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max), calc(100% - 28px))}
+    .btn{min-width:unset}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/oee.html">
+  <meta name="description" content="Free OEE calculator. Multiply availability, performance and quality to get a single Overall Equipment Effectiveness score, benchmarked against world-class 85%.">
+  <meta name="keywords" content="OEE calculator, overall equipment effectiveness, OEE formula, availability performance quality, six big losses, world class OEE, manufacturing KPI">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/oee.html">
+  <meta property="og:title" content="OEE Calculator | Overall Equipment Effectiveness | SimplicityHub">
+  <meta property="og:description" content="Free OEE calculator. Multiply availability, performance and quality to get a single Overall Equipment Effectiveness score, benchmarked against world-class 85%.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OEE Calculator | Overall Equipment Effectiveness | SimplicityHub">
+  <meta name="twitter:description" content="Free OEE calculator. Multiply availability, performance and quality to get a single Overall Equipment Effectiveness score, benchmarked against world-class 85%.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"OEE Calculator","item":"https://www.simplicityhub.co.uk/pages/oee.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"OEE Calculator","url":"https://www.simplicityhub.co.uk/pages/oee.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free OEE calculator. Multiply availability, performance and quality to get a single Overall Equipment Effectiveness score, benchmarked against world-class 85%.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is a good OEE score?","acceptedAnswer":{"@type":"Answer","text":"World-class is 85% or above. Average industry OEE is 60%. Many operations sit in the 40-60% range when measured honestly for the first time. Below 40% indicates major losses across all three factors and a strong business case for an OEE programme."}},{"@type":"Question","name":"What is the difference between OEE and TEEP?","acceptedAnswer":{"@type":"Answer","text":"OEE measures losses against planned production time only. TEEP (Total Effective Equipment Performance) measures against all calendar time, 24/7. TEEP includes the loss of running fewer shifts than the calendar allows, so it is always lower than OEE for the same equipment."}},{"@type":"Question","name":"What are the Six Big Losses?","acceptedAnswer":{"@type":"Answer","text":"Breakdowns and setup losses (availability), small stops and slow running (performance), startup rejects and production rejects (quality). Each loss maps to one of the three OEE factors and tells you which improvement tool to reach for."}},{"@type":"Question","name":"Why does OEE often drop when first measured?","acceptedAnswer":{"@type":"Answer","text":"The first honest measurement usually exposes losses that were previously hidden in operator notebooks, informal restarts and uncounted scrap. The drop is good news — you cannot improve what you do not see — and is the start of the improvement curve, not a step backwards."}},{"@type":"Question","name":"Should OEE include planned downtime?","acceptedAnswer":{"@type":"Answer","text":"No. Planned downtime (changeovers, planned maintenance, scheduled breaks) is excluded from the OEE denominator, which uses planned production time. Including planned downtime gives TEEP, which is a different (and lower) metric."}}]}</script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <a href="tools.html">Calculators</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>OEE Calculator</span>
+    </div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Lean &amp; Planning</div>
+        <h1>OEE Calculator</h1>
+        <p class="lead">Calculate Overall Equipment Effectiveness by breaking performance down into Availability, Performance and Quality — so you know exactly where the losses are hiding.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formulas</div>
+        <div class="formula-text">
+          Availability &nbsp;= Run Time &divide; Planned Time<br>
+          Performance &nbsp;= (Units &times; Cycle Time) &divide; Run Time<br>
+          Quality &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= Good Units &divide; Total Units<br>
+          OEE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= A &times; P &times; Q
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Calculator ── -->
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+
+          <div class="input-section-label">Time — use the same unit for all time fields (e.g. minutes)</div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="planned-time">Planned production time</label>
+              <span class="field-hint">Total time the machine was scheduled to run</span>
+              <input type="number" id="planned-time" placeholder="e.g. 480" min="0" step="any">
+              <span class="field-error" id="planned-err">Enter a valid planned time (greater than 0).</span>
+            </div>
+            <div class="field">
+              <label for="run-time">Run time</label>
+              <span class="field-hint">Actual operating time after unplanned stops</span>
+              <input type="number" id="run-time" placeholder="e.g. 420" min="0" step="any">
+              <span class="field-error" id="run-err">Enter a valid run time (greater than 0, no more than planned time).</span>
+            </div>
+          </div>
+
+          <div class="input-section-label">Units</div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="total-units">Total units produced</label>
+              <span class="field-hint">All units including defective ones</span>
+              <input type="number" id="total-units" placeholder="e.g. 800" min="0" step="any">
+              <span class="field-error" id="total-err">Enter a valid total units value (greater than 0).</span>
+            </div>
+            <div class="field">
+              <label for="good-units">Good units produced</label>
+              <span class="field-hint">Units meeting quality standard first time</span>
+              <input type="number" id="good-units" placeholder="e.g. 760" min="0" step="any">
+              <span class="field-error" id="good-err">Enter a valid good units value (no more than total units).</span>
+            </div>
+          </div>
+
+          <div class="input-section-label">Speed</div>
+
+          <div class="field">
+            <label for="cycle-time">Ideal cycle time</label>
+            <span class="field-hint">The fastest possible time to produce one unit — in the same unit as your time fields above</span>
+            <input type="number" id="cycle-time" placeholder="e.g. 0.5" min="0" step="any">
+            <span class="field-error" id="cycle-err">Enter a valid ideal cycle time (greater than 0).</span>
+          </div>
+
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Result area -->
+      <div id="result-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x2699;&#xFE0F;</div>
+          <h3>Ready to calculate</h3>
+          <p>Fill in your time, unit, and cycle time values on the left and press Calculate to see your OEE breakdown.</p>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Overall Equipment Effectiveness</div>
+            <div class="oee-hero">
+              <div class="oee-value" id="oee-value">—</div>
+              <div class="oee-sub">OEE</div>
+              <span class="oee-badge" id="oee-badge"></span>
+            </div>
+
+            <div class="oee-bar-track">
+              <div class="oee-bar-fill" id="oee-bar"></div>
+            </div>
+            <div class="oee-bar-labels">
+              <span>0%</span>
+              <span>40% poor</span>
+              <span>60% typical</span>
+              <span>85% world class</span>
+              <span>100%</span>
+            </div>
+
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-box-label">Availability</div>
+                <div class="metric-box-value" id="avail-value" style="color:#3a9fff">—</div>
+                <div class="metric-box-sub" id="avail-sub">Run time &divide; Planned time</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Performance</div>
+                <div class="metric-box-value" id="perf-value" style="color:#d8ff3a">—</div>
+                <div class="metric-box-sub" id="perf-sub">Speed vs. ideal rate</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-box-label">Quality</div>
+                <div class="metric-box-value" id="qual-value" style="color:#3affb4">—</div>
+                <div class="metric-box-sub" id="qual-sub">Good &divide; Total units</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0 0 4px">Understanding OEE</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">A</div>
+        <h4>Availability</h4>
+        <p>Measures time losses caused by unplanned stops — breakdowns, changeovers, or waiting. Run time divided by planned production time. World class is above 90%.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">P</div>
+        <h4>Performance</h4>
+        <p>Measures speed losses — slow cycles and minor stops that reduce output below the ideal rate. Ideal cycle time multiplied by total units, divided by run time. World class is above 95%.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Q</div>
+        <h4>Quality</h4>
+        <p>Measures quality losses — units that fail to meet standard on the first pass. Good units divided by total units. World class is above 99.9%. OEE = A × P × Q.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this oee calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Overall Equipment Effectiveness (OEE) is the single most-quoted KPI in manufacturing — and the most often miscalculated. True OEE is the product of three independent factors: availability (run time ÷ planned production time), performance (ideal cycle time × total count ÷ run time) and quality (good count ÷ total count). Multiplied together they give a single percentage between 0 and 100 that captures every loss between the planned shift and good units shipped. This calculator takes your planned production time, downtime, total count, good count and ideal cycle time, returns each of the three factors, multiplies them into the headline OEE figure, and benchmarks the result against the world-class threshold of 85%.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator any time you need a defensible OEE figure for a daily tier-one board, weekly review, monthly steering meeting, capital business case, or external benchmark. It is also the right tool when a team is arguing about which of the Six Big Losses to attack first — the three sub-scores tell you immediately whether availability, performance or quality is the dominant problem.</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A line is planned to run for 480 minutes; downtime is 60 minutes, so run time is 420 minutes (availability 87.5%). Ideal cycle is 60 seconds; total count is 360 units, so performance = (60 × 360) ÷ (420 × 60) = 85.7%. Good count is 342 units, so quality = 342 ÷ 360 = 95.0%. OEE = 0.875 × 0.857 × 0.950 = 71.3%. The line is 14 points away from world-class. Availability and performance contribute roughly equally to the gap; quality is already close to target.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is a good OEE score?</summary><p>World-class is 85% or above. Average industry OEE is 60%. Many operations sit in the 40-60% range when measured honestly for the first time. Below 40% indicates major losses across all three factors and a strong business case for an OEE programme.</p></details>
+      <details class="seo-faq-item"><summary>What is the difference between OEE and TEEP?</summary><p>OEE measures losses against planned production time only. TEEP (Total Effective Equipment Performance) measures against all calendar time, 24/7. TEEP includes the loss of running fewer shifts than the calendar allows, so it is always lower than OEE for the same equipment.</p></details>
+      <details class="seo-faq-item"><summary>What are the Six Big Losses?</summary><p>Breakdowns and setup losses (availability), small stops and slow running (performance), startup rejects and production rejects (quality). Each loss maps to one of the three OEE factors and tells you which improvement tool to reach for.</p></details>
+      <details class="seo-faq-item"><summary>Why does OEE often drop when first measured?</summary><p>The first honest measurement usually exposes losses that were previously hidden in operator notebooks, informal restarts and uncounted scrap. The drop is good news — you cannot improve what you do not see — and is the start of the improvement curve, not a step backwards.</p></details>
+      <details class="seo-faq-item"><summary>Should OEE include planned downtime?</summary><p>No. Planned downtime (changeovers, planned maintenance, scheduled breaks) is excluded from the OEE denominator, which uses planned production time. Including planned downtime gives TEEP, which is a different (and lower) metric.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">
+        Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.
+      </p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        <a href="dpmo.html">DPMO Calculator</a>
+        <a href="sigmalevel.html">Sigma Level Calculator</a>
+        <a href="controllimits.html">Control Limits Calculator</a>
+        <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+        <a href="pareto.html">Pareto Chart Calculator</a>
+        <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+        <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+        <a href="cpcpk.html">Cp / Cpk Calculator</a>
+        <a href="pppk.html">Pp / Ppk Calculator</a>
+        <a href="boxplot.html">Box Plot Calculator</a>
+        <a href="stddev.html">Standard Deviation Calculator</a>
+        <a href="samplesize.html">Sample Size Calculator</a>
+        <a href="binomial.html">Binomial Distribution Calculator</a>
+        <a href="pvalue.html">P-Value Calculator</a>
+        <a href="dataanalysis.html">Dataset Analysis</a>
+        <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+        <a href="correlation.html">Correlation Calculator</a>
+        <a href="zscore.html">Z-Score Calculator</a>
+        <a href="oee.html">OEE Calculator</a>
+        <a href="takttime.html">Takt Time Calculator</a>
+        <a href="cycletime.html">Cycle Time Calculator</a>
+        <a href="leadtime.html">Lead Time Calculator</a>
+        <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+        <a href="smed.html">SMED / Changeover ROI Calculator</a>
+        <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  /* ── Colour thresholds ── */
+  function oeeColour(pct) {
+    if (pct < 40)  return { color:'#ff5c5c', badge:'Poor',        bg:'rgba(255,92,92,.10)'   };
+    if (pct < 60)  return { color:'#ff8c42', badge:'Below average',bg:'rgba(255,140,66,.10)'};
+    if (pct < 75)  return { color:'#f5c518', badge:'Average',      bg:'rgba(245,197,24,.10)'  };
+    if (pct < 85)  return { color:'#8fd14f', badge:'Good',         bg:'rgba(143,209,79,.10)'  };
+    if (pct < 95)  return { color:'#d8ff3a', badge:'World class',  bg:'rgba(216,255,58,.10)'  };
+    return               { color:'#3affb4', badge:'Exceptional',  bg:'rgba(58,255,180,.10)'  };
+  }
+
+  function metricColour(pct) {
+    if (pct < 60) return '#ff5c5c';
+    if (pct < 75) return '#f5c518';
+    if (pct < 90) return '#8fd14f';
+    return '#3affb4';
+  }
+
+  /* ── OEE bar gradient ── */
+  function barColour(pct) {
+    if (pct < 40)  return 'linear-gradient(90deg, #ff5c5c, #ff7a42)';
+    if (pct < 60)  return 'linear-gradient(90deg, #ff5c5c, #f5c518)';
+    if (pct < 85)  return 'linear-gradient(90deg, #ff5c5c, #f5c518, #8fd14f)';
+    return 'linear-gradient(90deg, #ff5c5c, #f5c518, #8fd14f, #d8ff3a, #3affb4)';
+  }
+
+  /* ── Plain-English explanation ── */
+  function getExplanation(oee, avail, perf, qual) {
+    var oeeFmt   = oee.toFixed(1);
+    var availFmt = avail.toFixed(1);
+    var perfFmt  = perf.toFixed(1);
+    var qualFmt  = qual.toFixed(1);
+
+    var losses = [];
+    if (avail < 85) losses.push('Availability (' + availFmt + '%) — unplanned downtime is reducing productive time');
+    if (perf  < 90) losses.push('Performance ('  + perfFmt  + '%) — output is running below the ideal speed');
+    if (qual  < 95) losses.push('Quality ('      + qualFmt  + '%) — too many units are failing the first-pass quality check');
+
+    var intro;
+    if (oee >= 85) {
+      intro = 'An OEE of ' + oeeFmt + '% is at or above the world-class benchmark of 85%. The equipment is performing well across all three dimensions.';
+    } else if (oee >= 60) {
+      intro = 'An OEE of ' + oeeFmt + '% is around the typical average for many manufacturing operations. There is meaningful room to improve.';
+    } else {
+      intro = 'An OEE of ' + oeeFmt + '% is below average. Significant losses are reducing the effectiveness of this equipment.';
+    }
+
+    if (losses.length === 0) {
+      return intro + ' All three components — Availability, Performance and Quality — are at or above their respective world-class thresholds. The focus should be on sustaining this level through robust maintenance and process control.';
+    }
+
+    return intro + ' The biggest losses are coming from: ' + losses.join('; ') + '. Prioritise the lowest-scoring component first — small gains in the weakest area produce the greatest overall OEE improvement.';
+  }
+
+  /* ── Validate a field ── */
+  function val(id, errId, condition, errMsg) {
+    var el  = document.getElementById(id);
+    var err = document.getElementById(errId);
+    var v   = parseFloat(el.value);
+    var ok  = !isNaN(v) && condition(v);
+    el.classList.toggle('error', !ok);
+    if (errMsg) err.textContent = errMsg;
+    err.classList.toggle('visible', !ok);
+    return ok ? v : null;
+  }
+
+  /* ── Calculate ── */
+  function calculate() {
+    var planned = val('planned-time','planned-err', function(v){ return v > 0; }, null);
+    var run     = val('run-time',    'run-err',     function(v){ return v > 0; }, null);
+    var total   = val('total-units', 'total-err',   function(v){ return v > 0; }, null);
+    var good    = val('good-units',  'good-err',    function(v){ return v >= 0; }, null);
+    var cycle   = val('cycle-time',  'cycle-err',   function(v){ return v > 0; }, null);
+
+    if (planned===null||run===null||total===null||good===null||cycle===null) return;
+
+    /* Cross-field checks */
+    var runEl  = document.getElementById('run-time');
+    var runErr = document.getElementById('run-err');
+    if (run > planned) {
+      runEl.classList.add('error');
+      runErr.textContent = 'Run time cannot exceed planned production time.';
+      runErr.classList.add('visible');
+      return;
+    }
+    runErr.textContent = 'Enter a valid run time (greater than 0, no more than planned time).';
+
+    var goodEl  = document.getElementById('good-units');
+    var goodErr = document.getElementById('good-err');
+    if (good > total) {
+      goodEl.classList.add('error');
+      goodErr.textContent = 'Good units cannot exceed total units produced.';
+      goodErr.classList.add('visible');
+      return;
+    }
+    goodErr.textContent = 'Enter a valid good units value (no more than total units).';
+
+    var availability = (run   / planned) * 100;
+    var performance  = ((total * cycle) / run) * 100;
+    var quality      = (good  / total)  * 100;
+    var oee          = (availability / 100) * (performance / 100) * (quality / 100) * 100;
+
+    /* Clamp performance to 100% max for display */
+    var perfDisplay = Math.min(performance, 100);
+    var oeeDisplay  = Math.min(oee, 100);
+
+    var col = oeeColour(oeeDisplay);
+
+    /* OEE big number + badge */
+    document.getElementById('oee-value').textContent = oeeDisplay.toFixed(1) + '%';
+    document.getElementById('oee-value').style.color = col.color;
+
+    var badge = document.getElementById('oee-badge');
+    badge.textContent      = col.badge;
+    badge.style.color      = col.color;
+    badge.style.background = col.bg;
+    badge.style.border     = '1px solid ' + col.color;
+
+    /* Bar */
+    document.getElementById('oee-bar').style.width      = oeeDisplay + '%';
+    document.getElementById('oee-bar').style.background = barColour(oeeDisplay);
+
+    /* Component metrics */
+    document.getElementById('avail-value').textContent = availability.toFixed(1) + '%';
+    document.getElementById('avail-value').style.color = metricColour(availability);
+
+    document.getElementById('perf-value').textContent = perfDisplay.toFixed(1) + '%';
+    document.getElementById('perf-value').style.color = metricColour(perfDisplay);
+
+    document.getElementById('qual-value').textContent = quality.toFixed(1) + '%';
+    document.getElementById('qual-value').style.color = metricColour(quality);
+
+    /* Explanation */
+    document.getElementById('explanation-text').textContent =
+      getExplanation(oeeDisplay, availability, perfDisplay, quality);
+
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('result-panel').classList.add('visible');
+  }
+
+  /* ── Reset ── */
+  function resetCalc() {
+    ['planned-time','run-time','total-units','good-units','cycle-time'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.value = '';
+      el.classList.remove('error');
+    });
+    ['planned-err','run-err','total-err','good-err','cycle-err'].forEach(function(id) {
+      document.getElementById(id).classList.remove('visible');
+    });
+    document.getElementById('result-panel').classList.remove('visible');
+    document.getElementById('empty-state').style.display = '';
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', function(e){ if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>

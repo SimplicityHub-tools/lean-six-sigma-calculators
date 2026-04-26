@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18121363767"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18121363767');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/sh-tab-icon-v4.png">
+<link rel="icon" type="image/x-icon" href="/sh-tab-icon-v4.ico">
+<link rel="shortcut icon" href="/sh-tab-icon-v4.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/sh-apple-icon-v4.png">
+<title>DPMO Calculator | Defects Per Million Opportunities | SimplicityHub</title>
+<style>
+  :root{
+    --text:#f3f5f7;
+    --muted:#b8c0cc;
+    --line:rgba(255,255,255,.10);
+    --accent:#d8ff3a;
+    --shadow:0 20px 50px rgba(0,0,0,.35);
+    --max:1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(circle at left 30%, rgba(216,255,58,.08), transparent 24%),
+      linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:var(--text);
+    line-height:1.45;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(var(--max), calc(100% - 48px));margin:0 auto}
+
+  /* ── Header ── */
+  header{
+    border-bottom:1px solid var(--line);
+    background:rgba(4,7,11,.78);
+    backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:20;
+  }
+  .nav{display:flex;justify-content:flex-end;align-items:center;min-height:96px}
+  nav{display:flex;gap:34px;flex-wrap:wrap;font-weight:700;font-size:19px}
+  nav a{position:relative}
+  nav a:hover{color:var(--accent)}
+  nav a::after{
+    content:"";position:absolute;left:0;bottom:-10px;
+    width:0;height:3px;background:var(--accent);
+    border-radius:999px;box-shadow:0 0 10px rgba(212,255,25,.35);
+    transition:width .25s ease;
+  }
+  nav a:hover::after,nav a.active::after{width:100%}
+  nav a.active{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{padding:56px 0 34px;border-bottom:1px solid var(--line)}
+  .breadcrumb{
+    display:flex;align-items:center;gap:8px;
+    font-size:15px;color:var(--muted);font-weight:600;
+    margin-bottom:22px;
+  }
+  .breadcrumb a:hover{color:var(--accent)}
+  .breadcrumb-sep{opacity:.4}
+  .hero-inner{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+  .kicker{
+    color:var(--accent);font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;font-size:16px;margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(36px,5vw,60px);line-height:.95;
+    margin:0 0 16px;letter-spacing:-.04em;
+  }
+  p.lead{
+    font-size:clamp(18px,2vw,22px);color:#d9dee5;margin:0;max-width:680px;
+  }
+  .formula-badge{
+    background:rgba(216,255,58,.08);
+    border:1px solid rgba(216,255,58,.22);
+    border-radius:20px;padding:20px 28px;
+    text-align:center;white-space:nowrap;
+  }
+  .formula-label{
+    font-size:13px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:10px;
+  }
+  .formula-text{
+    font-size:18px;font-weight:700;color:var(--accent);
+    font-family:monospace,monospace;letter-spacing:.02em;
+  }
+
+  /* ── Main layout ── */
+  .section{padding:48px 0}
+  .calc-layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  .panel{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);
+    border-radius:36px;
+    box-shadow:var(--shadow);
+    padding:36px;
+  }
+
+  /* ── Form ── */
+  .panel-title{
+    font-size:24px;font-weight:800;letter-spacing:-.02em;
+    margin:0 0 28px;
+  }
+  .field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:32px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field label{
+    font-size:15px;font-weight:700;color:#dfe4eb;letter-spacing:.03em;
+  }
+  .field-hint{font-size:13px;color:var(--muted);margin-top:2px}
+  .field input{
+    width:100%;border-radius:18px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04);
+    color:var(--text);
+    padding:16px 18px;
+    font-size:18px;
+    font-family:inherit;
+    outline:none;
+    transition:border-color .2s ease, background .2s ease;
+    -moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input::placeholder{color:#4d5766}
+  .field input:focus{
+    border-color:rgba(216,255,58,.45);
+    background:rgba(216,255,58,.03);
+  }
+  .field input.error{border-color:rgba(255,90,90,.5)}
+  .field-error{
+    font-size:13px;color:#ff7070;font-weight:600;
+    display:none;margin-top:2px;
+  }
+  .field-error.visible{display:block}
+
+  /* ── Buttons ── */
+  .btn-row{display:flex;gap:14px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:18px 28px;border-radius:22px;
+    font-weight:800;font-size:18px;border:1px solid var(--line);
+    transition:transform .15s ease;cursor:pointer;font-family:inherit;
+    flex:1;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#08100c;border-color:rgba(216,255,58,.5)}
+  .btn.secondary{color:var(--text);background:rgba(255,255,255,.04)}
+
+  /* ── Result panel ── */
+  .result-panel{
+    display:none;
+    flex-direction:column;
+    gap:0;
+  }
+  .result-panel.visible{display:flex}
+
+  .result-main{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);
+    border-radius:36px 36px 0 0;
+    box-shadow:var(--shadow);
+    padding:36px;
+    border-bottom:none;
+  }
+  .result-label{
+    font-size:14px;font-weight:700;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+  }
+  .result-value{
+    font-size:clamp(52px, 8vw, 80px);
+    font-weight:900;letter-spacing:-.04em;
+    color:var(--accent);line-height:1;
+    margin-bottom:8px;
+  }
+  .result-unit{
+    font-size:17px;color:var(--muted);font-weight:600;margin-bottom:24px;
+  }
+  .sigma-row{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 20px;
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--line);
+    border-radius:14px;
+  }
+  .sigma-label{font-size:15px;color:var(--muted);font-weight:600}
+  .sigma-value{
+    font-size:22px;font-weight:900;letter-spacing:-.02em;
+    margin-left:auto;
+  }
+  .sigma-badge{
+    padding:5px 12px;border-radius:999px;
+    font-size:13px;font-weight:800;letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+
+  .result-explanation{
+    background:rgba(6,10,17,.98);
+    border:1px solid var(--line);
+    border-radius:0 0 36px 36px;
+    padding:28px 36px 36px;
+  }
+  .explanation-title{
+    font-size:15px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+  }
+  .explanation-text{
+    font-size:19px;color:#d9dee5;line-height:1.6;margin:0;
+  }
+
+  /* ── Empty state ── */
+  .empty-state{
+    background:
+      linear-gradient(180deg, rgba(14,20,32,.94), rgba(6,10,17,.98)),
+      radial-gradient(circle at top left, rgba(216,255,58,.08), transparent 26%);
+    border:1px solid var(--line);
+    border-radius:36px;
+    box-shadow:var(--shadow);
+    padding:52px 36px;
+    text-align:center;
+    color:var(--muted);
+  }
+  .empty-icon{
+    font-size:48px;margin-bottom:18px;opacity:.5;
+  }
+  .empty-state h3{
+    font-size:22px;font-weight:800;letter-spacing:-.02em;
+    color:#f3f5f7;margin:0 0 10px;
+  }
+  .empty-state p{font-size:17px;color:var(--muted);margin:0}
+
+  /* ── How it works ── */
+  .how-section{padding:0 0 56px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+  .how-card{
+    background:rgba(255,255,255,.02);
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding:24px;
+  }
+  .how-num{
+    width:36px;height:36px;border-radius:10px;
+    background:rgba(216,255,58,.12);
+    border:1px solid rgba(216,255,58,.24);
+    color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;
+    margin-bottom:14px;
+  }
+  .how-card h4{
+    font-size:17px;font-weight:800;letter-spacing:-.01em;
+    margin:0 0 8px;
+  }
+  .how-card p{font-size:15px;color:var(--muted);margin:0;line-height:1.55}
+
+  /* ── Footer ── */
+  .footer-links a{color:#f3f5f7;text-decoration:none;transition:color .15s ease;font-weight:500}
+  .footer-links a:hover{color:#d8ff3a}
+  .footer-sep{color:#6f7a88}
+  footer{
+    border-top:1px solid rgba(255,255,255,.10);
+    padding:28px 0 46px;margin-top:24px;
+    background:linear-gradient(180deg, #05070b 0%, #07101d 100%);
+    color:#b8c0cc;font-size:17px;
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .calc-layout,.how-grid{grid-template-columns:1fr}
+    .hero-inner{grid-template-columns:1fr}
+    .formula-badge{display:none}
+  }
+  @media(max-width:980px){
+    .nav{justify-content:center}
+    nav{justify-content:center;gap:18px;font-size:17px}
+    .wrap{width:min(var(--max), calc(100% - 28px))}
+    .btn{min-width:unset}
+  }
+
+  @media (max-width:768px){
+    header{position:static}
+    .nav{min-height:auto;padding:18px 0}
+    nav{gap:14px 18px;font-size:16px}
+  }
+
+  @media (max-width:560px){
+    nav{gap:10px 14px;font-size:15px}
+  }
+</style>
+
+  <link rel="canonical" href="https://www.simplicityhub.co.uk/pages/dpmo.html">
+  <meta name="description" content="Free DPMO calculator. Convert defects, units and opportunities into Defects Per Million Opportunities and the equivalent short-term and long-term Sigma Level.">
+  <meta name="keywords" content="DPMO calculator, defects per million calculator, sigma level conversion, six sigma DPMO, DPMO to sigma, quality calculator UK">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="author" content="SimplicityHub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.simplicityhub.co.uk/pages/dpmo.html">
+  <meta property="og:title" content="DPMO Calculator | Defects Per Million Opportunities | SimplicityHub">
+  <meta property="og:description" content="Free DPMO calculator. Convert defects, units and opportunities into Defects Per Million Opportunities and the equivalent short-term and long-term Sigma Level.">
+  <meta property="og:site_name" content="SimplicityHub">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DPMO Calculator | Defects Per Million Opportunities | SimplicityHub">
+  <meta name="twitter:description" content="Free DPMO calculator. Convert defects, units and opportunities into Defects Per Million Opportunities and the equivalent short-term and long-term Sigma Level.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.simplicityhub.co.uk/"},{"@type":"ListItem","position":2,"name":"Calculators","item":"https://www.simplicityhub.co.uk/pages/tools.html"},{"@type":"ListItem","position":3,"name":"DPMO Calculator","item":"https://www.simplicityhub.co.uk/pages/dpmo.html"}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"DPMO Calculator","url":"https://www.simplicityhub.co.uk/pages/dpmo.html","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","description":"Free DPMO calculator. Convert defects, units and opportunities into Defects Per Million Opportunities and the equivalent short-term and long-term Sigma Level.","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"},"publisher":{"@type":"Organization","name":"SimplicityHub","url":"https://www.simplicityhub.co.uk"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between DPMO and DPU?","acceptedAnswer":{"@type":"Answer","text":"DPU is defects per unit (defects ÷ units). DPMO normalises by opportunity count and scales to one million, so it is comparable across products of different complexity. A 50-component PCB with the same DPU as a 5-component bracket is actually 10x better in DPMO terms."}},{"@type":"Question","name":"How do I count opportunities correctly?","acceptedAnswer":{"@type":"Answer","text":"An opportunity is any feature that could be defective and is independently inspected — a hole, a weld, a label position, a paint surface, a torque value. Be consistent across products: inflating opportunity counts artificially boosts DPMO and is a classic gaming pattern auditors look for."}},{"@type":"Question","name":"What is a good DPMO?","acceptedAnswer":{"@type":"Answer","text":"6σ = 3.4 DPMO long-term (world-class). 5σ ≈ 233 DPMO. 4σ ≈ 6,210 DPMO (typical industry). 3σ ≈ 66,807 DPMO (poor; about 6.7%). Most untouched processes start in the 3-4σ range; the journey from 4σ to 5σ usually takes 12-24 months of focused improvement work."}},{"@type":"Question","name":"Why do Sigma tables include a 1.5σ shift?","acceptedAnswer":{"@type":"Answer","text":"Long-term processes drift; the 1.5σ shift is the empirical adjustment Motorola introduced to convert short-term capability into expected long-term performance. Long-term Z = short-term Z minus 1.5. The 3.4 DPMO figure for \"six sigma\" assumes this shift is included."}},{"@type":"Question","name":"Can DPMO be used for service processes?","acceptedAnswer":{"@type":"Answer","text":"Yes, and it is one of the most valuable applications. Define an opportunity as any element of a transaction that can be wrong (correct address, correct amount, on time, complete). DPMO turns service quality into a number that can be benchmarked against manufacturing six sigma."}}]}</script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="wrap nav">
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="shop.html">Software</a>
+      <a href="templates.html">Templates</a>
+      <a href="tools.html" class="active">Calculators</a>
+      <a href="merchandise.html">Merchandise</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="login.html">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <a href="tools.html">Calculators</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>DPMO Calculator</span>
+    </div>
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">Quality &amp; Six Sigma</div>
+        <h1>DPMO Calculator</h1>
+        <p class="lead">Calculate Defects Per Million Opportunities to measure your process quality and see exactly where it sits on the Six Sigma scale.</p>
+      </div>
+      <div class="formula-badge">
+        <div class="formula-label">Formula</div>
+        <div class="formula-text">DPMO = (D &divide; (U &times; O)) &times; 1,000,000</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Calculator ── -->
+<section class="section">
+  <div class="wrap">
+    <div class="calc-layout">
+
+      <!-- Inputs -->
+      <div class="panel">
+        <h2 class="panel-title">Enter your values</h2>
+        <div class="field-group">
+          <div class="field">
+            <label for="defects">Number of defects</label>
+            <span class="field-hint">Total defects found in the sample</span>
+            <input type="number" id="defects" placeholder="e.g. 25" min="0" step="any">
+            <span class="field-error" id="defects-err">Please enter a valid number of defects (0 or more).</span>
+          </div>
+          <div class="field">
+            <label for="units">Number of units</label>
+            <span class="field-hint">Total units inspected or produced</span>
+            <input type="number" id="units" placeholder="e.g. 500" min="1" step="any">
+            <span class="field-error" id="units-err">Please enter a valid number of units (greater than 0).</span>
+          </div>
+          <div class="field">
+            <label for="opportunities">Opportunities per unit</label>
+            <span class="field-hint">Number of ways each unit can have a defect</span>
+            <input type="number" id="opportunities" placeholder="e.g. 4" min="1" step="any">
+            <span class="field-error" id="opp-err">Please enter a valid number of opportunities (greater than 0).</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="calculate()">Calculate</button>
+          <button class="btn secondary" onclick="resetCalc()">Reset</button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="result-area">
+        <!-- Empty state shown before calculation -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">&#x1F4CA;</div>
+          <h3>Ready to calculate</h3>
+          <p>Enter your values on the left and press Calculate to see your DPMO result.</p>
+        </div>
+
+        <!-- Result shown after calculation -->
+        <div class="result-panel" id="result-panel">
+          <div class="result-main">
+            <div class="result-label">Your DPMO result</div>
+            <div class="result-value" id="dpmo-value">—</div>
+            <div class="result-unit">defects per million opportunities</div>
+            <div class="sigma-row">
+              <span class="sigma-label">Approximate Sigma Level</span>
+              <span class="sigma-value" id="sigma-value">—</span>
+              <span class="sigma-badge" id="sigma-badge"></span>
+            </div>
+          </div>
+          <div class="result-explanation">
+            <div class="explanation-title">What this means</div>
+            <p class="explanation-text" id="explanation-text"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-section">
+  <div class="wrap">
+    <div class="kicker">How it works</div>
+    <h2 style="font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;margin:0">Understanding DPMO</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">D</div>
+        <h4>Defects</h4>
+        <p>The total number of defects found across all units in your sample. A defect is any instance where a unit fails to meet a specification.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">U</div>
+        <h4>Units</h4>
+        <p>The total number of items, products, or transactions inspected or produced during the measurement period.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">O</div>
+        <h4>Opportunities</h4>
+        <p>The number of ways each unit could potentially have a defect. A form with 10 fields has 10 opportunities for error per unit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+
+<section class="seo-content" style="background:#0d1117;color:#e6edf3;padding:48px 0;border-top:1px solid rgba(255,255,255,.08)">
+  <div class="wrap" style="max-width:920px;margin:0 auto;padding:0 24px">
+    <div class="kicker" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#d8ff3a;margin-bottom:8px">About this calculator</div>
+    <h2 style="font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 16px;color:#fff">What this dpmo calculator does</h2>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Defects Per Million Opportunities (DPMO) is the standard normalised quality metric in Six Sigma. Unlike a simple defect rate, DPMO accounts for how many opportunities for a defect exist in each unit — so a complex product with 50 defect opportunities per unit can be compared fairly against a simple one with 5. The formula is (defects ÷ (units × opportunities)) × 1,000,000. This calculator takes the three inputs, returns the DPMO figure, the defect rate per unit, the yield, and the equivalent short-term and long-term Sigma Level (the long-term figure includes the standard 1.5σ shift used in most Six Sigma reporting).</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">When to use it</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#c9d1d9">Use this calculator any time you need to express quality on a scale that compares fairly across products of different complexity, report capability to a customer or auditor, set an improvement target, or convert between defect rate and Sigma Level for a project tollgate. It is also the right tool when a stakeholder asks "how many sigma is that?".</p>
+    <h3 style="font-size:20px;margin:24px 0 8px;color:#fff">Worked example</h3>
+    <p style="font-size:17px;line-height:1.65;margin:0 0 28px;color:#c9d1d9">A finished assembly contains 25 inspection opportunities. Out of 500 units inspected, 48 defects are found. DPMO = 48 ÷ (500 × 25) × 1,000,000 = 3,840. That maps to a long-term Sigma Level of about 4.16 — better than industry average (≈4.0, around 6,210 DPMO) but well short of world-class (6σ, 3.4 DPMO). Halving the defect rate to 24 defects would lift Sigma to about 4.4; getting to a true 5σ process would mean fewer than 12 defects per 500 units.</p>
+    <h3 style="font-size:22px;margin:32px 0 12px;color:#fff">Frequently asked questions</h3>
+    <div class="seo-faq" style="display:flex;flex-direction:column;gap:8px">
+      <details class="seo-faq-item"><summary>What is the difference between DPMO and DPU?</summary><p>DPU is defects per unit (defects ÷ units). DPMO normalises by opportunity count and scales to one million, so it is comparable across products of different complexity. A 50-component PCB with the same DPU as a 5-component bracket is actually 10x better in DPMO terms.</p></details>
+      <details class="seo-faq-item"><summary>How do I count opportunities correctly?</summary><p>An opportunity is any feature that could be defective and is independently inspected — a hole, a weld, a label position, a paint surface, a torque value. Be consistent across products: inflating opportunity counts artificially boosts DPMO and is a classic gaming pattern auditors look for.</p></details>
+      <details class="seo-faq-item"><summary>What is a good DPMO?</summary><p>6σ = 3.4 DPMO long-term (world-class). 5σ ≈ 233 DPMO. 4σ ≈ 6,210 DPMO (typical industry). 3σ ≈ 66,807 DPMO (poor; about 6.7%). Most untouched processes start in the 3-4σ range; the journey from 4σ to 5σ usually takes 12-24 months of focused improvement work.</p></details>
+      <details class="seo-faq-item"><summary>Why do Sigma tables include a 1.5σ shift?</summary><p>Long-term processes drift; the 1.5σ shift is the empirical adjustment Motorola introduced to convert short-term capability into expected long-term performance. Long-term Z = short-term Z minus 1.5. The 3.4 DPMO figure for "six sigma" assumes this shift is included.</p></details>
+      <details class="seo-faq-item"><summary>Can DPMO be used for service processes?</summary><p>Yes, and it is one of the most valuable applications. Define an opportunity as any element of a transaction that can be wrong (correct address, correct amount, on time, complete). DPMO turns service quality into a number that can be benchmarked against manufacturing six sigma.</p></details>
+    </div>
+  </div>
+</section>
+<style>
+  .seo-faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 18px}
+  .seo-faq-item summary{cursor:pointer;font-weight:700;color:#fff;font-size:16px;list-style:none}
+  .seo-faq-item summary::-webkit-details-marker{display:none}
+  .seo-faq-item summary::before{content:'+ ';color:#d8ff3a;font-weight:700}
+  .seo-faq-item[open] summary::before{content:'– '}
+  .seo-faq-item p{margin:10px 0 2px;color:#c9d1d9;font-size:15.5px;line-height:1.6}
+</style>
+
+<!-- START: Related Calculators Block -->
+<section class="section related-calculators-section">
+  <div class="wrap">
+    <div class="panel related-calculators-panel">
+      <div class="kicker">Free tools</div>
+      <h2>More free calculators — Making Things Simple</h2>
+      <p style="color:var(--muted);font-size:18px;margin:0 0 24px">Explore more practical calculators designed to support improvement, quality, statistics, and operational decision-making.</p>
+      <div class="related-calculators-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <a href="dpmo.html">DPMO Calculator</a>
+          <a href="sigmalevel.html">Sigma Level Calculator</a>
+          <a href="controllimits.html">Control Limits Calculator</a>
+          <a href="attrsamplesize.html">Attribute Sample Size Calculator</a>
+          <a href="pareto.html">Pareto Chart Calculator</a>
+          <a href="rty.html">Rolled Throughput Yield (RTY) Calculator</a>
+          <a href="copq.html">Cost of Poor Quality (COPQ) Calculator</a>
+          <a href="cpcpk.html">Cp / Cpk Calculator</a>
+          <a href="pppk.html">Pp / Ppk Calculator</a>
+          <a href="boxplot.html">Box Plot Calculator</a>
+          <a href="stddev.html">Standard Deviation Calculator</a>
+          <a href="samplesize.html">Sample Size Calculator</a>
+          <a href="binomial.html">Binomial Distribution Calculator</a>
+          <a href="pvalue.html">P-Value Calculator</a>
+          <a href="dataanalysis.html">Dataset Analysis</a>
+          <a href="confidenceinterval.html">Confidence Interval Calculator</a>
+          <a href="correlation.html">Correlation Calculator</a>
+          <a href="zscore.html">Z-Score Calculator</a>
+          <a href="oee.html">OEE Calculator</a>
+          <a href="takttime.html">Takt Time Calculator</a>
+          <a href="cycletime.html">Cycle Time Calculator</a>
+          <a href="leadtime.html">Lead Time Calculator</a>
+          <a href="pce.html">Process Cycle Efficiency (PCE) Calculator</a>
+          <a href="smed.html">SMED / Changeover ROI Calculator</a>
+          <a href="capacity.html">Production Capacity Calculator</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .related-calculators-panel h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.03em;margin:0 0 14px}
+  .related-calculators-grid a{display:block;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#f3f5f7;text-decoration:none;font-weight:700;transition:transform .15s ease,border-color .15s ease,color .15s ease}
+  .related-calculators-grid a:hover{transform:translateY(-1px);border-color:rgba(216,255,58,.35);color:var(--accent)}
+</style>
+<!-- END: Related Calculators Block -->
+
+<footer>
+  <div class="wrap">
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;gap:8px 0;margin-bottom:16px;font-size:17px">
+      <a href="../index.html">Home</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="shop.html">Software</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="templates.html">Templates</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="tools.html">Calculators</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="merchandise.html">Merchandise</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="about.html">About</a><span class="footer-sep">&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p style="margin:0;font-size:15px;color:#6f7a88">&copy; 2026 SimplicityHub. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  /* ── Sigma level lookup from DPMO ── */
+  function getSigmaLevel(dpmo) {
+    if (dpmo >= 691462) return { sigma: '1.0', label: 'Very low', color: '#ff5c5c', bg: 'rgba(255,92,92,.12)' };
+    if (dpmo >= 308538) return { sigma: '2.0', label: 'Low',     color: '#ff8c42', bg: 'rgba(255,140,66,.12)' };
+    if (dpmo >= 66807)  return { sigma: '3.0', label: 'Average', color: '#f5c518', bg: 'rgba(245,197,24,.12)' };
+    if (dpmo >= 6210)   return { sigma: '4.0', label: 'Good',    color: '#8fd14f', bg: 'rgba(143,209,79,.12)' };
+    if (dpmo >= 233)    return { sigma: '5.0', label: 'Very good',color: '#d8ff3a', bg: 'rgba(216,255,58,.12)' };
+    return                      { sigma: '6.0', label: 'World class', color: '#3affb4', bg: 'rgba(58,255,180,.12)' };
+  }
+
+  /* ── Plain-English explanation ── */
+  function getExplanation(dpmo, sigma, defects, units, opps) {
+    var total = units * opps;
+    var yieldPct = (((1000000 - dpmo) / 1000000) * 100).toFixed(2);
+
+    if (dpmo === 0) {
+      return 'No defects were recorded across ' + Number(units).toLocaleString() + ' units with ' + Number(opps).toLocaleString() + ' opportunities each — a perfect result. Verify your measurement system is capturing all defect types before treating this as a confirmed Six Sigma process.';
+    }
+
+    var base = 'Your process produced ' + Number(defects).toLocaleString() + ' defect' + (defects === 1 ? '' : 's') + ' across ' + Number(units).toLocaleString() + ' unit' + (units === 1 ? '' : 's') + ', giving a yield of ' + yieldPct + '%.';
+
+    if (dpmo >= 691462) {
+      return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 1 Sigma process — meaning roughly 1 in 3 outputs has a defect. Significant structural improvement is needed before this process is reliable.';
+    }
+    if (dpmo >= 308538) {
+      return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 2 Sigma process — about 1 in 10 outputs is defective. Major process redesign is likely needed to bring defect rates to an acceptable level.';
+    }
+    if (dpmo >= 66807) {
+      return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 3 Sigma process — roughly 1 in 15 outputs has a defect. This is common in many industries but leaves significant room for improvement. A structured DMAIC project is a good next step.';
+    }
+    if (dpmo >= 6210) {
+      return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 4 Sigma process — about 1 in 160 outputs is defective. This is a solid starting point. Targeting 5 or 6 Sigma performance through focused improvement projects could significantly reduce cost and customer impact.';
+    }
+    if (dpmo >= 233) {
+      return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 5 Sigma process — fewer than 1 in 4,000 outputs is defective. This is well above industry average. Sustaining this performance and targeting the remaining opportunities is the priority.';
+    }
+    return base + ' At ' + Math.round(dpmo).toLocaleString() + ' DPMO this is a 6 Sigma process — fewer than 3.4 defects per million opportunities. This is world-class quality. Focus on maintaining controls and preventing regression.';
+  }
+
+  /* ── Validation ── */
+  function validateField(id, errId, condition, message) {
+    var input = document.getElementById(id);
+    var err   = document.getElementById(errId);
+    var val   = parseFloat(input.value);
+    var valid = !isNaN(val) && condition(val);
+    input.classList.toggle('error', !valid);
+    err.classList.toggle('visible', !valid);
+    return valid ? val : null;
+  }
+
+  /* ── Calculate ── */
+  function calculate() {
+    var defects = validateField('defects',       'defects-err', function(v){ return v >= 0; });
+    var units   = validateField('units',         'units-err',   function(v){ return v > 0; });
+    var opps    = validateField('opportunities', 'opp-err',     function(v){ return v > 0; });
+
+    if (defects === null || units === null || opps === null) return;
+
+    var dpmo   = (defects / (units * opps)) * 1000000;
+    var sl     = getSigmaLevel(dpmo);
+    var expl   = getExplanation(dpmo, sl.sigma, defects, units, opps);
+
+    /* Format DPMO — no decimals if >= 1, 2dp if small */
+    var dpmoFormatted = dpmo >= 1
+      ? Math.round(dpmo).toLocaleString()
+      : dpmo.toFixed(2);
+
+    document.getElementById('dpmo-value').textContent  = dpmoFormatted;
+    document.getElementById('sigma-value').textContent  = sl.sigma + '\u03c3';
+    document.getElementById('explanation-text').textContent = expl;
+
+    var badge = document.getElementById('sigma-badge');
+    badge.textContent   = sl.label;
+    badge.style.color   = sl.color;
+    badge.style.background = sl.bg;
+    badge.style.border  = '1px solid ' + sl.color.replace(')', ',.35)').replace('rgb', 'rgba');
+
+    document.getElementById('empty-state').style.display  = 'none';
+    document.getElementById('result-panel').classList.add('visible');
+  }
+
+  /* ── Reset ── */
+  function resetCalc() {
+    ['defects','units','opportunities'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.value = '';
+      el.classList.remove('error');
+    });
+    ['defects-err','units-err','opp-err'].forEach(function(id) {
+      document.getElementById(id).classList.remove('visible');
+    });
+    document.getElementById('result-panel').classList.remove('visible');
+    document.getElementById('empty-state').style.display = '';
+  }
+
+  /* ── Allow Enter key to calculate ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
